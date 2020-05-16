@@ -22,6 +22,8 @@ var (
 	Token   string
 	re      = regexp.MustCompile("(discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	magenta = color.New(color.FgMagenta)
+	green   = color.New(color.FgGreen)
+	red     = color.New(color.FgRed)
 	strPost = []byte("POST")
 )
 
@@ -110,6 +112,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if len(code[2]) != 16 {
 			magenta.Print(start.Format("15:04:05 "))
 			color.Green("[-] Snipped code: " + code[2] + " from " + m.Author.String())
+			magenta.Print(start.Format("15:04:05 "))
 			color.Red("[x] Invalid Code")
 			return
 		}
@@ -134,16 +137,18 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		bodyString := string(body)
 		magenta := color.New(color.FgMagenta)
 		magenta.Print(start.Format("15:04:05 "))
-		color.Green("[-] Snipped code: " + code[2] + " from " + m.Author.String())
+		green.Print("[-] Snipped code: ")
+		red.Print(code[2])
+		println(" from " + m.Author.String() + m.GuildID)
 		magenta.Print(start.Format("15:04:05 "))
 		if strings.Contains(bodyString, "This gift has been redeemed already.") {
 			color.Yellow("[-] Code has been already redeemed")
 		}
 		if strings.Contains(bodyString, "nitro") {
-			color.Green("[+] Code applied")
+			green.Println("[+] Code applied")
 		}
 		if strings.Contains(bodyString, "Unknown Gift Code") {
-			color.Red("[x] Invalid Code")
+			red.Println("[x] Invalid Code")
 		}
 		fasthttp.ReleaseResponse(res)
 
