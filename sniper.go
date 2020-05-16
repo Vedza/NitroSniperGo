@@ -1,15 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
+	"github.com/valyala/fasthttp"
 	"io/ioutil"
-	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -20,9 +18,11 @@ import (
 	"time"
 )
 
-// Variables used for command line parameters
 var (
-	Token string
+	Token   string
+	re      = regexp.MustCompile("(discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
+	magenta = color.New(color.FgMagenta)
+	strPost = []byte("POST")
 )
 
 func init() {
@@ -86,10 +86,9 @@ func main() {
 
 	// Wait here until CTRL-C or other term signal is received.
 	t := time.Now()
-	m := color.New(color.FgMagenta)
 	color.Cyan("Sniping Discord Nitro on " + strconv.Itoa(len(dg.State.Guilds)) + " Servers 🔫\n\n")
 
-	m.Print(t.Format("15:04:05 "))
+	magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Bot is ready")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
@@ -103,40 +102,40 @@ func main() {
 // message is created on any channel that the autenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if strings.Contains(m.Content, "discordapp.com/gifts/") || strings.Contains(m.Content, "discord.gift/") {
-		t := time.Now()
+	if strings.Contains(m.Content, "discord.gift/") || strings.Contains(m.Content, "discordapp.com/gifts/") {
+		start := time.Now()
 
-		re := regexp.MustCompile("(discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 		code := re.FindStringSubmatch(m.Content)
-		var jsonStr = []byte(`{"channel_id":` + m.ChannelID + "}")
 
 		if len(code[2]) != 16 {
+			magenta.Print(start.Format("15:04:05 "))
+			color.Green("[-] Snipped code: " + code[2] + " from " + m.Author.String())
 			color.Red("[x] Invalid Code")
-
 			return
 		}
 
-		req, err := http.NewRequest("POST", "https://discordapp.com/api/v6/entitlements/gift-codes/"+code[2]+"/redeem", bytes.NewBuffer(jsonStr))
-		req.Header.Set("Content-Type", "application/json")
-
+		var strRequestURI = []byte("https://discordapp.com/api/v6/entitlements/gift-codes/" + code[2] + "/redeem")
+		req := fasthttp.AcquireRequest()
+		req.Header.SetContentType("application/json")
 		req.Header.Set("authorization", Token)
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		t2 := time.Now()
+		req.SetBody([]byte(`{"channel_id":` + m.ChannelID + "}"))
+		req.Header.SetMethodBytes(strPost)
+		req.SetRequestURIBytes(strRequestURI)
+		res := fasthttp.AcquireResponse()
 
-		if err != nil {
-			panic(err)
+		if err := fasthttp.Do(req, res); err != nil {
+			panic("handle error")
 		}
-		defer resp.Body.Close()
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-		bodyString := string(bodyBytes)
+
+		fasthttp.ReleaseRequest(req)
+
+		body := res.Body()
+
+		bodyString := string(body)
 		magenta := color.New(color.FgMagenta)
-		magenta.Print(t.Format("15:04:05 "))
-		color.Green("[-] Snipped code: " + code[2] + " by " + m.Author.String())
-		magenta.Print(t2.Format("15:04:05 "))
+		magenta.Print(start.Format("15:04:05 "))
+		color.Green("[-] Snipped code: " + code[2] + " from " + m.Author.String())
+		magenta.Print(start.Format("15:04:05 "))
 		if strings.Contains(bodyString, "This gift has been redeemed already.") {
 			color.Yellow("[-] Code has been already redeemed")
 		}
@@ -146,6 +145,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if strings.Contains(bodyString, "Unknown Gift Code") {
 			color.Red("[x] Invalid Code")
 		}
+		fasthttp.ReleaseResponse(res)
+
 	}
 
 }
