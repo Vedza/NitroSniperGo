@@ -20,7 +20,7 @@ import (
 
 var (
 	Token   string
-	re      = regexp.MustCompile("(discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
+	re      = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	magenta = color.New(color.FgMagenta)
 	green   = color.New(color.FgGreen)
 	red     = color.New(color.FgRed)
@@ -104,12 +104,12 @@ func main() {
 // message is created on any channel that the autenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if strings.Contains(m.Content, "discord.gift/") || strings.Contains(m.Content, "discordapp.com/gifts/") {
+	if strings.Contains(m.Content, "discord.com/gifts") || strings.Contains(m.Content, "discord.gift/") || strings.Contains(m.Content, "discordapp.com/gifts/") {
 		start := time.Now()
 
 		code := re.FindStringSubmatch(m.Content)
 
-		if len(code[2]) != 16 {
+		if len(code[2]) < 16 {
 			magenta.Print(start.Format("15:04:05 "))
 			color.Green("[-] Snipped code: " + code[2] + " from " + m.Author.String())
 			magenta.Print(start.Format("15:04:05 "))
@@ -139,7 +139,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		magenta.Print(start.Format("15:04:05 "))
 		green.Print("[-] Snipped code: ")
 		red.Print(code[2])
-		println(" from " + m.Author.String() + m.GuildID)
+		println(" from " + m.Author.String())
 		magenta.Print(start.Format("15:04:05 "))
 		if strings.Contains(bodyString, "This gift has been redeemed already.") {
 			color.Yellow("[-] Code has been already redeemed")
