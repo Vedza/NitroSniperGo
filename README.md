@@ -7,7 +7,7 @@ Discord Nitro sniper in Go
 
 ```
 $> go build
-$> go build ./NitroSniper
+$> ./NitroSniper
  ```
  
  ### How to obtain your token
