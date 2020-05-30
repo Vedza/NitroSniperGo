@@ -6,11 +6,11 @@ Discord Nitro sniper in Go
 ### USE :
 
 ```
-$> go get github.com/bwmarrin/discordgo
-$> go get github.com/fatih/color
-$> go get github.com/valyala/fasthttp
-$> go build
-$> ./NitroSniper
+ go get github.com/bwmarrin/discordgo
+ go get github.com/fatih/color
+ go get github.com/valyala/fasthttp
+ go build
+ ./NitroSniperGo
  ```
  
  ### How to obtain your token
