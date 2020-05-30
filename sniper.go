@@ -43,7 +43,6 @@ func init() {
 
 	// Type-cast `f` to a map by means of type assertion.
 	m := f.(map[string]interface{})
-	fmt.Printf("Parsed data: %v\n", m)
 
 	str := fmt.Sprintf("%v", m["token"])
 
