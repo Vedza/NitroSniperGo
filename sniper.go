@@ -111,9 +111,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		if len(code[2]) < 16 {
 			magenta.Print(start.Format("15:04:05 "))
-			color.Green("[-] Snipped code: " + code[2] + " from " + m.Author.String())
-			magenta.Print(start.Format("15:04:05 "))
-			color.Red("[x] Invalid Code")
+			red.Print("[=] Auto-detected a fake code: ")
+			red.Print(code[2])
+			println(" from " + m.Author.String())
 			return
 		}
 
