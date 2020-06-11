@@ -136,7 +136,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		bodyString := string(body)
 		magenta := color.New(color.FgMagenta)
 		magenta.Print(start.Format("15:04:05 "))
-		green.Print("[-] Snipped code: ")
+		green.Print("[-] Sniped code: ")
 		red.Print(code[2])
 		println(" from " + m.Author.String())
 		magenta.Print(start.Format("15:04:05 "))
