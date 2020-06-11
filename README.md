@@ -13,5 +13,8 @@ Discord Nitro sniper in Go
  ./NitroSniperGo
  ```
  
- ### How to obtain your token
+### How to obtain your token
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
+
+### Disclaimer
+This can get your account banned if you run multiple instance at the same time and/or claim too much Nitros in a too short amount of time. Use it a your own risks.
