@@ -1,5 +1,5 @@
 # NitroSniperGo
-Discord Nitro sniper in Go
+Discord Nitro sniper and Giveaway joiner in Go
 
 ![Screenshot](screenshot.png)
 
