@@ -19,12 +19,16 @@ import (
 )
 
 var (
-	Token   string
-	re      = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
-	magenta = color.New(color.FgMagenta)
-	green   = color.New(color.FgGreen)
-	red     = color.New(color.FgRed)
-	strPost = []byte("POST")
+	Token      string
+	userID     string
+	re         = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
+	rePrivnote = regexp.MustCompile("https://privnote.com/.*")
+	reGiveaway = regexp.MustCompile("You won the \\*\\*(.*)\\*\\*")
+	magenta    = color.New(color.FgMagenta)
+	green      = color.New(color.FgGreen)
+	red        = color.New(color.FgRed)
+	strPost    = []byte("POST")
+	strGet     = []byte("GET")
 )
 
 func init() {
@@ -41,7 +45,6 @@ func init() {
 		os.Exit(1)
 	}
 
-	// Type-cast `f` to a map by means of type assertion.
 	m := f.(map[string]interface{})
 
 	str := fmt.Sprintf("%v", m["token"])
@@ -51,11 +54,10 @@ func init() {
 }
 
 func main() {
-	fmt.Print("\033[2J")
 	c := exec.Command("clear")
 
 	c.Stdout = os.Stdout
-	c.Run() // Create a new Discord session using the provided bot token.
+	c.Run()
 	color.Red(`
 ▓█████▄  ██▓  ██████  ▄████▄   ▒█████   ██▀███  ▓█████▄      ██████  ███▄    █  ██▓ ██▓███  ▓█████  ██▀███
 ▒██▀ ██▌▓██▒▒██    ▒ ▒██▀ ▀█  ▒██▒  ██▒▓██ ▒ ██▒▒██▀ ██▌   ▒██    ▒  ██ ▀█   █ ▓██▒▓██░  ██▒▓█   ▀ ▓██ ▒ ██▒
@@ -69,47 +71,45 @@ func main() {
 ░                   ░                           ░
 	`)
 	dg, err := discordgo.New(Token)
-
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
 
-	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
 
-	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
 	}
 
-	// Wait here until CTRL-C or other term signal is received.
 	t := time.Now()
 	color.Cyan("Sniping Discord Nitro on " + strconv.Itoa(len(dg.State.Guilds)) + " Servers 🔫\n\n")
 
 	magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Bot is ready")
+	userID = dg.State.User.ID
+
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
-	// Cleanly close down the Discord session.
 	dg.Close()
 }
 
-// This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the autenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if strings.Contains(m.Content, "discord.com/gifts") || strings.Contains(m.Content, "discord.gift/") || strings.Contains(m.Content, "discordapp.com/gifts/") {
-		start := time.Now()
+	if re.Match([]byte(m.Content)) {
 
 		code := re.FindStringSubmatch(m.Content)
 
+		if len(code) < 2 {
+			return
+		}
+
 		if len(code[2]) < 16 {
-			magenta.Print(start.Format("15:04:05 "))
+			magenta.Print(time.Now().Format("15:04:05 "))
 			red.Print("[=] Auto-detected a fake code: ")
 			red.Print(code[2])
 			println(" from " + m.Author.String())
@@ -135,11 +135,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		bodyString := string(body)
 		magenta := color.New(color.FgMagenta)
-		magenta.Print(start.Format("15:04:05 "))
+		magenta.Print(time.Now().Format("15:04:05 "))
 		green.Print("[-] Sniped code: ")
 		red.Print(code[2])
 		println(" from " + m.Author.String())
-		magenta.Print(start.Format("15:04:05 "))
+		magenta.Print(time.Now().Format("15:04:05 "))
 		if strings.Contains(bodyString, "This gift has been redeemed already.") {
 			color.Yellow("[-] Code has been already redeemed")
 		}
@@ -151,6 +151,20 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		fasthttp.ReleaseResponse(res)
 
+	} else if strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway")) {
+		time.Sleep(time.Minute)
+		magenta.Print(time.Now().Format("15:04:05 "))
+		color.Yellow("[-] Enter Giveaway ")
+		s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
+
+	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, userID) {
+		var won = reGiveaway.FindStringSubmatch(m.Content)
+		if len(won) < 2 {
+			return
+		}
+		magenta.Print(time.Now().Format("15:04:05 "))
+		green.Print("[+] Won Giveaway: ")
+		color.Magenta(won[1])
 	}
 
 }
