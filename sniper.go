@@ -216,7 +216,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			_, _ = cyan.Print(won[1])
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-
 	}
 
 }
