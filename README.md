@@ -1,7 +1,7 @@
 # NitroSniperGo
 Discord Nitro sniper and Giveaway joiner in Go.
 
-It also send a DM to giveaway host when won.
+It also sends a DM to giveaway host when won.
 
 ![Screenshot](screenshot.png)
 
