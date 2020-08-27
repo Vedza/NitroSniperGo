@@ -1,9 +1,11 @@
 # NitroSniperGo
-Discord Nitro sniper and Giveaway joiner in Go
+Discord Nitro sniper and Giveaway joiner in Go.
+
+It also send a DM to giveaway host when won.
 
 ![Screenshot](screenshot.png)
 
-### USE :
+### Usage
 
 ```
  go get github.com/bwmarrin/discordgo
