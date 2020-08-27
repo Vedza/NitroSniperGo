@@ -245,10 +245,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		host, _ := s.User(hostChannel.ID)
+		host, _ := s.User(giveawayHost[1])
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[+] Sent DM to host")
-		_, _ = fmt.Println(host.String())
+		_, _ = green.Print("[+] Sent DM to host: ")
+		_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
 	}
 
 }
