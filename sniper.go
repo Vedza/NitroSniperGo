@@ -111,6 +111,8 @@ func checkCode(bodyString string) {
 	}
 	if strings.Contains(bodyString, "Unknown Gift Code") {
 		_, _ = red.Println("[x] Invalid Code")
+	} else {
+		color.Yellow("[-] Cannot check gift validity")
 	}
 
 }
@@ -153,7 +155,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		bodyString := string(body)
 		fasthttp.ReleaseResponse(res)
 
-		magenta := color.New(color.FgMagenta)
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = green.Print("[-] Sniped code: ")
 		_, _ = red.Print(code[2])
@@ -207,6 +208,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
 		won := reGiveaway.FindStringSubmatch(m.Content)
 		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Content)
+		if giveawayID == nil {
+			_, _ = green.Println("[+] Won Giveaway")
+			if len(won) > 1 {
+				_, _ = green.Print(": ")
+				_, _ = cyan.Println(won[1])
+			}
+			return
+		}
 		messages, _ := s.ChannelMessages(m.ChannelID, 1, "", "", giveawayID[3])
 
 		guild, err := s.State.Guild(m.GuildID)
@@ -234,7 +243,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		giveawayHost := reGiveawayHost.FindStringSubmatch(messages[0].Embeds[0].Description)
 		hostChannel, err := s.UserChannelCreate(giveawayHost[1])
-		if err != nil {
+
+		if len(giveawayHost) > 1 || err != nil {
 			return
 		}
 
