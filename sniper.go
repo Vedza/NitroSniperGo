@@ -129,7 +129,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = red.Print("[=] Auto-detected a fake code: ")
 			_, _ = red.Print(code[2])
-			println(" from " + m.Author.String())
+			fmt.Println(" from " + m.Author.String())
 			return
 		}
 
