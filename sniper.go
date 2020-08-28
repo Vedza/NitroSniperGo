@@ -105,11 +105,9 @@ func checkCode(bodyString string) {
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 	if strings.Contains(bodyString, "This gift has been redeemed already.") {
 		color.Yellow("[-] Code has been already redeemed")
-	}
-	if strings.Contains(bodyString, "nitro") {
+	} else if strings.Contains(bodyString, "nitro") {
 		_, _ = green.Println("[+] Code applied")
-	}
-	if strings.Contains(bodyString, "Unknown Gift Code") {
+	} else if strings.Contains(bodyString, "Unknown Gift Code") {
 		_, _ = red.Println("[x] Invalid Code")
 	} else {
 		color.Yellow("[-] Cannot check gift validity")
