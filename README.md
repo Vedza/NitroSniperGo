@@ -1,4 +1,7 @@
 # NitroSniperGo
+
+[![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://github.com/Vedzaa/NitroSniperGo/releases)
+
 Discord Nitro sniper and Giveaway joiner in Go.
 
 It also sends a DM to giveaway host when won.
