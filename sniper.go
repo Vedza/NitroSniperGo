@@ -180,8 +180,15 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		checkCode(bodyString)
 
-	} else if strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway") && strings.Contains(strings.ToLower(m.Content), "nitro")) {
-		time.Sleep(time.Minute)
+	} else if strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway")) {
+		if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
+			if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {
+				return
+			}
+		} else {
+			return
+		}
+		time.Sleep(time.Second)
 		guild, err := s.State.Guild(m.GuildID)
 		if err != nil || guild == nil {
 			guild, err = s.Guild(m.GuildID)
