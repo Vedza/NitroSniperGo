@@ -1,6 +1,6 @@
 # NitroSniperGo
 
-[![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://github.com/Vedzaa/NitroSniperGo/releases)
+[![GitHub release](https://img.shields.io/github/release/Vedzaa/NitroSniperGo.svg)](https://github.com/Vedzaa/NitroSniperGo/releases)
 
 Discord Nitro sniper and Giveaway joiner in Go.
 
