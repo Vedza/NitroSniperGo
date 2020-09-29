@@ -13,3 +13,13 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+.idea/modules.xml
+.idea/NitroSniperGo.iml
+.idea/vcs.xml
+.idea/workspace.xml
+NitroSniperGo_build_mac.zip
+NitroSniperGo_build_mac/NitroSniperGo
+NitroSniperGo_build_mac/token.json
+NitroSniperGo_build_win64.zip
+NitroSniperGo_build_win64/token.json
+package-lock.json

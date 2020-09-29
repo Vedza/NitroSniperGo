@@ -12,7 +12,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"regexp"
-	"strconv"
+	strconv "strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -20,6 +20,11 @@ import (
 
 var (
 	Token             string
+	NitroMax          int
+	Cooldown          int
+	GiveawaySniper    bool
+	NitroSniped       int
+	SniperRunning     bool
 	userID            string
 	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	_                 = regexp.MustCompile("https://privnote.com/.*")
@@ -51,9 +56,30 @@ func init() {
 	m := f.(map[string]interface{})
 
 	str := fmt.Sprintf("%v", m["token"])
-
 	flag.StringVar(&Token, "t", str, "Token")
+
+	str2 := fmt.Sprintf("%f", m["nitro_max"])
+	value, _ := strconv.ParseFloat(str2, 64)
+	flag.IntVar(&NitroMax, "m", int(value), "NitroMax")
+
+	str3 := fmt.Sprintf("%t", m["giveaway_sniper"])
+	value2, _ := strconv.ParseBool(str3)
+	flag.BoolVar(&GiveawaySniper, "g", value2, "GiveawaySniper")
+
+	str4 := fmt.Sprintf("%f", m["cooldown"])
+	value3, _ := strconv.ParseFloat(str4, 64)
+	flag.IntVar(&Cooldown, "c", int(value3), "cooldown")
+
 	flag.Parse()
+
+	NitroSniped = 0
+	SniperRunning = true
+}
+func timerEnd() {
+	SniperRunning = true
+	NitroSniped = 0
+	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+	_, _ = green.Println("[+] Starting Nitro sniping")
 }
 
 func main() {
@@ -107,6 +133,13 @@ func checkCode(bodyString string) {
 		color.Yellow("[-] Code has been already redeemed")
 	} else if strings.Contains(bodyString, "nitro") {
 		_, _ = green.Println("[+] Code applied")
+		NitroSniped++
+		if NitroSniped == NitroMax {
+			SniperRunning = false
+			time.AfterFunc(time.Hour*time.Duration(Cooldown), timerEnd)
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = yellow.Println("[+] Stopping Nitro sniping for now")
+		}
 	} else if strings.Contains(bodyString, "Unknown Gift Code") {
 		_, _ = red.Println("[x] Invalid Code")
 	} else {
@@ -117,7 +150,7 @@ func checkCode(bodyString string) {
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if re.Match([]byte(m.Content)) {
+	if re.Match([]byte(m.Content)) && SniperRunning {
 
 		code := re.FindStringSubmatch(m.Content)
 
@@ -180,7 +213,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		checkCode(bodyString)
 
-	} else if strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway")) {
+	} else if GiveawaySniper && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
 		if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
 			if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {
 				return
