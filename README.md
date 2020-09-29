@@ -13,7 +13,7 @@ You can now enable or no Giveaway joiner and setup a cooldown of x hours each x 
 ### Usage
 
 Edit `settings.json`
-```json
+```
 {
   "token": "", // Your token here
   "nitro_max": 2, // Maxi Nitro before cooldown
