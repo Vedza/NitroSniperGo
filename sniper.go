@@ -1,4 +1,4 @@
-package NitroSniperGo
+package main
 
 import (
 	"encoding/json"
