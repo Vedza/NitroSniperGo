@@ -12,10 +12,19 @@ You can now enable or no Giveaway joiner and setup a cooldown of x hours each x 
 
 ### Usage
 
+Edit `settings.json`
+```json
+{
+  "token": "", // Your token here
+  "nitro_max": 2, // Maxi Nitro before cooldown
+  "cooldown": 24, // in Hour
+  "giveaway_sniper": true // Enable or not giveaway joiner
+}
+
 ```
- go get github.com/bwmarrin/discordgo
- go get github.com/fatih/color
- go get github.com/valyala/fasthttp
+
+```
+ go mod download
  go build
  ./NitroSniperGo
  ```

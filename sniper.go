@@ -1,4 +1,4 @@
-package main
+package NitroSniperGo
 
 import (
 	"encoding/json"
@@ -40,7 +40,7 @@ var (
 )
 
 func init() {
-	file, err := ioutil.ReadFile("token.json")
+	file, err := ioutil.ReadFile("settings.json")
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed read file: %s\n", err)
 		os.Exit(1)
