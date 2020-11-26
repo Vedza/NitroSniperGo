@@ -19,24 +19,26 @@ import (
 )
 
 var (
-	Token             string
-	NitroMax          int
-	Cooldown          int
-	GiveawaySniper    bool
-	NitroSniped       int
-	SniperRunning     bool
-	userID            string
-	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
-	_                 = regexp.MustCompile("https://privnote.com/.*")
-	reGiveaway        = regexp.MustCompile("You won the \\*\\*(.*)\\*\\*")
-	reGiveawayMessage = regexp.MustCompile("<https://discordapp.com/channels/(.*)/(.*)/(.*)>")
-	magenta           = color.New(color.FgMagenta)
-	green             = color.New(color.FgGreen)
-	yellow            = color.New(color.FgYellow)
-	red               = color.New(color.FgRed)
-	cyan              = color.New(color.FgCyan)
-	strPost           = []byte("POST")
-	_                 = []byte("GET")
+	Token               string
+	NitroMax            int
+	Cooldown            int
+	GiveawaySniper      bool
+	NitroGiveawaySniper bool
+	GiveawayDM          string
+	NitroSniped         int
+	SniperRunning       bool
+	userID              string
+	re                  = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
+	_                   = regexp.MustCompile("https://privnote.com/.*")
+	reGiveaway          = regexp.MustCompile("You won the \\*\\*(.*)\\*\\*")
+	reGiveawayMessage   = regexp.MustCompile("<https://discordapp.com/channels/(.*)/(.*)/(.*)>")
+	magenta             = color.New(color.FgMagenta)
+	green               = color.New(color.FgGreen)
+	yellow              = color.New(color.FgYellow)
+	red                 = color.New(color.FgRed)
+	cyan                = color.New(color.FgCyan)
+	strPost             = []byte("POST")
+	_                   = []byte("GET")
 )
 
 func init() {
@@ -69,6 +71,13 @@ func init() {
 	str4 := fmt.Sprintf("%f", m["cooldown"])
 	value3, _ := strconv.ParseFloat(str4, 64)
 	flag.IntVar(&Cooldown, "c", int(value3), "cooldown")
+
+	str5 := fmt.Sprintf("%v", m["giveaway_dm"])
+	flag.StringVar(&GiveawayDM, "gd", str5, "GiveawayDM")
+
+	str6 := fmt.Sprintf("%t", m["nitro_giveaway_sniper"])
+	value4, _ := strconv.ParseBool(str6)
+	flag.BoolVar(&NitroGiveawaySniper, "ng", value4, "NitroGiveawaySniper")
 
 	flag.Parse()
 
@@ -214,14 +223,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		checkCode(bodyString)
 
 	} else if GiveawaySniper && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
-		if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
-			if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {
+		if NitroGiveawaySniper {
+			if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
+				if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {
+					return
+				}
+			} else {
 				return
 			}
-		} else {
-			return
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Minute)
 		guild, err := s.State.Guild(m.GuildID)
 		if err != nil || guild == nil {
 			guild, err = s.Guild(m.GuildID)
@@ -282,26 +293,28 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
-		giveawayHost := reGiveawayHost.FindStringSubmatch(messages[0].Embeds[0].Description)
-		if len(giveawayHost) < 2 {
-			return
-		}
-		hostChannel, err := s.UserChannelCreate(giveawayHost[1])
+		if GiveawayDM != "" {
+			giveawayHost := reGiveawayHost.FindStringSubmatch(messages[0].Embeds[0].Description)
+			if len(giveawayHost) < 2 {
+				return
+			}
+			hostChannel, err := s.UserChannelCreate(giveawayHost[1])
 
-		if err != nil {
-			return
-		}
-		time.Sleep(time.Second * 9)
+			if err != nil {
+				return
+			}
+			time.Sleep(time.Second * 9)
 
-		_, err = s.ChannelMessageSend(hostChannel.ID, "Hi, I won a giveaway !")
-		if err != nil {
-			return
-		}
+			_, err = s.ChannelMessageSend(hostChannel.ID, GiveawayDM)
+			if err != nil {
+				return
+			}
 
-		host, _ := s.User(giveawayHost[1])
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[+] Sent DM to host: ")
-		_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
+			host, _ := s.User(giveawayHost[1])
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = green.Print("[+] Sent DM to host: ")
+			_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
+		}
 	}
 
 }

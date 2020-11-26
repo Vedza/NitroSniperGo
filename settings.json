@@ -2,5 +2,7 @@
   "token": "",
   "nitro_max": 2,
   "cooldown": 24,
-  "giveaway_sniper": true
+  "giveaway_sniper": true,
+  "nitro_giveaway_sniper": true,
+  "giveaway_dm": ""
 }
