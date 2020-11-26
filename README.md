@@ -11,7 +11,7 @@ Thanks for all the suggestions, but I probably won't add any unless someone want
 ### Usage
 
 Edit `settings.json`
-``` json
+```
 {
   "token": "", // Your token here
   "nitro_max": 2, // Maxi Nitro before cooldown
