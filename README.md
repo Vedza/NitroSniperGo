@@ -19,7 +19,11 @@ Edit `settings.json`
   "cooldown": 24, // in Hour
   "giveaway_sniper": true // Enable or not giveaway joiner
   "nitro_giveaway_sniper": true, // Only join Nitro gieaways
-  "giveaway_dm": "Hey, I won a giveaway !" // DM sent to giveaway host, leave empty to not send any dm
+  "giveaway_dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
+  "blacklist_servers": [
+    "727880228696457325",
+    "727888218646457612"
+  ] // IDs of servers you don't want the giveaway joiners to work on
 }
 ```
 
