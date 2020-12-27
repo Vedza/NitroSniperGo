@@ -23,7 +23,7 @@ Edit `settings.json`
   "blacklist_servers": [
     "727880228696457325",
     "727888218646457612"
-  ] // IDs of servers you don't want the giveaway joiners to work on
+  ] // IDs of servers you don't want the giveaway joiner to work on
 }
 ```
 
