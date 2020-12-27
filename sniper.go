@@ -45,6 +45,15 @@ var (
 	_                 = []byte("GET")
 )
 
+func contains(array []string, value string) bool {
+	for _, v := range array {
+		if v == value {
+			return true
+		}
+	}
+
+	return false
+}
 func init() {
 	file, err := ioutil.ReadFile("settings.json")
 	if err != nil {
@@ -198,7 +207,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		checkCode(bodyString)
 
-	} else if settings.GiveawaySniper && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
+	} else if settings.GiveawaySniper && !contains(settings.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
 		if settings.NitroGiveawaySniper {
 			if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
 				if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {

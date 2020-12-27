@@ -4,5 +4,9 @@
   "cooldown": 24,
   "giveaway_sniper": true,
   "nitro_giveaway_sniper": true,
-  "giveaway_dm": ""
+  "giveaway_dm": "",
+  "blacklist_servers": [
+    "727880228696457325",
+    "727888218646457612"
+  ]
 }
