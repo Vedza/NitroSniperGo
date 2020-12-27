@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
@@ -18,27 +17,32 @@ import (
 	"time"
 )
 
+type Settings struct {
+	Token               string   `json:"token"`
+	NitroMax            int      `json:"nitro_max"`
+	Cooldown            int      `json:"cooldown"`
+	GiveawaySniper      bool     `json:"giveaway_sniper"`
+	NitroGiveawaySniper bool     `json:"nitro_giveaway_sniper"`
+	GiveawayDm          string   `json:"giveaway_dm"`
+	BlacklistServers    []string `json:"blacklist_servers"`
+}
+
 var (
-	Token               string
-	NitroMax            int
-	Cooldown            int
-	GiveawaySniper      bool
-	NitroGiveawaySniper bool
-	GiveawayDM          string
-	NitroSniped         int
-	SniperRunning       bool
-	userID              string
-	re                  = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
-	_                   = regexp.MustCompile("https://privnote.com/.*")
-	reGiveaway          = regexp.MustCompile("You won the \\*\\*(.*)\\*\\*")
-	reGiveawayMessage   = regexp.MustCompile("<https://discordapp.com/channels/(.*)/(.*)/(.*)>")
-	magenta             = color.New(color.FgMagenta)
-	green               = color.New(color.FgGreen)
-	yellow              = color.New(color.FgYellow)
-	red                 = color.New(color.FgRed)
-	cyan                = color.New(color.FgCyan)
-	strPost             = []byte("POST")
-	_                   = []byte("GET")
+	userID            string
+	NitroSniped       int
+	SniperRunning     bool
+	settings          Settings
+	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
+	_                 = regexp.MustCompile("https://privnote.com/.*")
+	reGiveaway        = regexp.MustCompile("You won the \\*\\*(.*)\\*\\*")
+	reGiveawayMessage = regexp.MustCompile("<https://discordapp.com/channels/(.*)/(.*)/(.*)>")
+	magenta           = color.New(color.FgMagenta)
+	green             = color.New(color.FgGreen)
+	yellow            = color.New(color.FgYellow)
+	red               = color.New(color.FgRed)
+	cyan              = color.New(color.FgCyan)
+	strPost           = []byte("POST")
+	_                 = []byte("GET")
 )
 
 func init() {
@@ -48,39 +52,11 @@ func init() {
 		os.Exit(1)
 	}
 
-	var f interface{}
-	err = json.Unmarshal(file, &f)
+	err = json.Unmarshal(file, &settings)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse JSON: %s\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse JSON file: %s\n", err)
 		os.Exit(1)
 	}
-
-	m := f.(map[string]interface{})
-
-	str := fmt.Sprintf("%v", m["token"])
-	flag.StringVar(&Token, "t", str, "Token")
-
-	str2 := fmt.Sprintf("%f", m["nitro_max"])
-	value, _ := strconv.ParseFloat(str2, 64)
-	flag.IntVar(&NitroMax, "m", int(value), "NitroMax")
-
-	str3 := fmt.Sprintf("%t", m["giveaway_sniper"])
-	value2, _ := strconv.ParseBool(str3)
-	flag.BoolVar(&GiveawaySniper, "g", value2, "GiveawaySniper")
-
-	str4 := fmt.Sprintf("%f", m["cooldown"])
-	value3, _ := strconv.ParseFloat(str4, 64)
-	flag.IntVar(&Cooldown, "c", int(value3), "cooldown")
-
-	str5 := fmt.Sprintf("%v", m["giveaway_dm"])
-	flag.StringVar(&GiveawayDM, "gd", str5, "GiveawayDM")
-
-	str6 := fmt.Sprintf("%t", m["nitro_giveaway_sniper"])
-	value4, _ := strconv.ParseBool(str6)
-	flag.BoolVar(&NitroGiveawaySniper, "ng", value4, "NitroGiveawaySniper")
-
-	flag.Parse()
-
 	NitroSniped = 0
 	SniperRunning = true
 }
@@ -108,7 +84,7 @@ func main() {
 ░     ░        ░  ░ ░          ░ ░     ░        ░             ░           ░  ░              ░  ░   ░
 ░                   ░                           ░
 	`)
-	dg, err := discordgo.New(Token)
+	dg, err := discordgo.New(settings.Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
@@ -143,9 +119,9 @@ func checkCode(bodyString string) {
 	} else if strings.Contains(bodyString, "nitro") {
 		_, _ = green.Println("[+] Code applied")
 		NitroSniped++
-		if NitroSniped == NitroMax {
+		if NitroSniped == settings.NitroMax {
 			SniperRunning = false
-			time.AfterFunc(time.Hour*time.Duration(Cooldown), timerEnd)
+			time.AfterFunc(time.Hour*time.Duration(settings.Cooldown), timerEnd)
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = yellow.Println("[+] Stopping Nitro sniping for now")
 		}
@@ -178,7 +154,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var strRequestURI = []byte("https://discordapp.com/api/v6/entitlements/gift-codes/" + code[2] + "/redeem")
 		req := fasthttp.AcquireRequest()
 		req.Header.SetContentType("application/json")
-		req.Header.Set("authorization", Token)
+		req.Header.Set("authorization", settings.Token)
 		req.SetBody([]byte(`{"channel_id":` + m.ChannelID + "}"))
 		req.Header.SetMethodBytes(strPost)
 		req.SetRequestURIBytes(strRequestURI)
@@ -222,8 +198,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		checkCode(bodyString)
 
-	} else if GiveawaySniper && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
-		if NitroGiveawaySniper {
+	} else if settings.GiveawaySniper && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
+		if settings.NitroGiveawaySniper {
 			if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
 				if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {
 					return
@@ -293,7 +269,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
-		if GiveawayDM != "" {
+		if settings.GiveawayDm != "" {
 			giveawayHost := reGiveawayHost.FindStringSubmatch(messages[0].Embeds[0].Description)
 			if len(giveawayHost) < 2 {
 				return
@@ -305,7 +281,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 			time.Sleep(time.Second * 9)
 
-			_, err = s.ChannelMessageSend(hostChannel.ID, GiveawayDM)
+			_, err = s.ChannelMessageSend(hostChannel.ID, settings.GiveawayDm)
 			if err != nil {
 				return
 			}
