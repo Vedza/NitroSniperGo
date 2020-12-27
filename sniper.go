@@ -77,6 +77,20 @@ func timerEnd() {
 }
 
 func main() {
+	dg, err := discordgo.New(settings.Token)
+	if err != nil {
+		fmt.Println("error creating Discord session,", err)
+		return
+	}
+
+	dg.AddHandler(messageCreate)
+
+	err = dg.Open()
+	if err != nil {
+		fmt.Println("error opening connection,", err)
+		return
+	}
+
 	c := exec.Command("clear")
 
 	c.Stdout = os.Stdout
@@ -93,19 +107,6 @@ func main() {
 ░     ░        ░  ░ ░          ░ ░     ░        ░             ░           ░  ░              ░  ░   ░
 ░                   ░                           ░
 	`)
-	dg, err := discordgo.New(settings.Token)
-	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
-	}
-
-	dg.AddHandler(messageCreate)
-
-	err = dg.Open()
-	if err != nil {
-		fmt.Println("error opening connection,", err)
-		return
-	}
 
 	t := time.Now()
 	color.Cyan("Sniping Discord Nitro and Giveaway on " + strconv.Itoa(len(dg.State.Guilds)) + " Servers 🔫\n\n")
