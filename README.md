@@ -3,11 +3,12 @@
 [![GitHub release](https://img.shields.io/github/release/Vedzaa/NitroSniperGo.svg?style=flat)](https://github.com/Vedzaa/NitroSniperGo/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/vedza/NitroSniperGo/total?style=flat)](https://github.com/vedza/NitroSniperGo/releases)
 
+<a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+
 Discord Nitro sniper and Giveaway joiner in Go.
 
 ![Screenshot](screenshot.jpg)
 
-Thanks for all the suggestions, but I probably won't add any unless someone wants to pay me
 ### Usage
 
 Edit `settings.json`
