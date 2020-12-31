@@ -12,7 +12,7 @@ Discord Nitro sniper and Giveaway joiner in Go.
 #### Usage
 
 Edit `settings.json`
-```
+``` json5
 {
   "token": "", // Your token here
   "nitro_max": 2, // Maxi Nitro before cooldown
