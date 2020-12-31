@@ -7,9 +7,9 @@
 
 Discord Nitro sniper and Giveaway joiner in Go.
 
-![Screenshot](screenshot.jpg)
+![Screenshot](screenshot.png)
 
-### Usage
+#### Usage
 
 Edit `settings.json`
 ```
@@ -27,15 +27,15 @@ Edit `settings.json`
 }
 ```
 
-Compile it or download [release](https://github.com/Vedza/NitroSniperGo/releases)
-```
+Compile it or download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
+``` sh
  go mod download
  go build
  ./NitroSniperGo
  ```
  
-### How to obtain your token
+#### How to obtain your token
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
 
-### Disclaimer
-This is against TOS and can get your account banned, especially if you run multiple instance at the same time and/or claim too much Nitros in a too short amount of time. Use it at your own risks.
+#### Disclaimer
+This is against TOS and can get your account banned, especially if you run multiple instance at the same time and/or claim too many Nitros in a too short amount of time. Use it at your own risks.
