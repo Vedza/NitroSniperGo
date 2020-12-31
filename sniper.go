@@ -71,10 +71,7 @@ func webhook(code string, response string, sender string, color string) {
 	{
 		"title": "Nitro Sniped",
 		"description": "**` + code + `**\n*` + sender + `*\n` + response + `",
-		"color": ` + color + `,
-		"footer": {
-			"text": "Don't forget to leave a star on my GitHub repo !"
-		}
+		"color": ` + color + `
 	}
 ],
 	"username": "NitroSniper",
