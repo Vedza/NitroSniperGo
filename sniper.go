@@ -18,14 +18,17 @@ import (
 )
 
 type Settings struct {
-	Token               string   `json:"token"`
-	NitroMax            int      `json:"nitro_max"`
-	Cooldown            int      `json:"cooldown"`
-	GiveawaySniper      bool     `json:"giveaway_sniper"`
-	NitroGiveawaySniper bool     `json:"nitro_giveaway_sniper"`
-	GiveawayDm          string   `json:"giveaway_dm"`
-	Webhook             string   `json:"webhook"`
-	BlacklistServers    []string `json:"blacklist_servers"`
+	Token               string `json:"token"`
+	NitroMax            int    `json:"nitro_max"`
+	Cooldown            int    `json:"cooldown"`
+	GiveawaySniper      bool   `json:"giveaway_sniper"`
+	NitroGiveawaySniper bool   `json:"nitro_giveaway_sniper"`
+	GiveawayDm          string `json:"giveaway_dm"`
+	Webhook             struct {
+		URL      string `json:"url"`
+		GoodOnly bool   `json:"good_only"`
+	} `json:"webhook"`
+	BlacklistServers []string `json:"blacklist_servers"`
 }
 
 type Response struct {
@@ -61,15 +64,15 @@ func contains(array []string, value string) bool {
 	return false
 }
 
-func webhook(code string, response string, sender string, color string) {
-	if settings.Webhook == "" {
+func webhook(title string, code string, response string, sender string, color string) {
+	if settings.Webhook.URL == "" || (color != "2948879" && settings.Webhook.GoodOnly == true) {
 		return
 	}
 	var body = `{
 		"content": null,
 		"embeds": [
 	{
-		"title": "Nitro Sniped",
+		"title": "` + title + `",
 		"description": "**` + code + `**\n*` + sender + `*\n` + response + `",
 		"color": ` + color + `
 	}
@@ -81,7 +84,7 @@ func webhook(code string, response string, sender string, color string) {
 	req.Header.SetContentType("application/json")
 	req.SetBody([]byte(body))
 	req.Header.SetMethodBytes([]byte("POST"))
-	req.SetRequestURIBytes([]byte(settings.Webhook))
+	req.SetRequestURIBytes([]byte(settings.Webhook.URL))
 	res := fasthttp.AcquireResponse()
 
 	if err := fasthttp.Do(req, res); err != nil {
@@ -174,7 +177,11 @@ func main() {
 	getPaymentSourceId()
 
 	t := time.Now()
-	color.Cyan("Sniping Discord Nitro and Giveaway on " + strconv.Itoa(len(dg.State.Guilds)) + " Servers 🔫\n\n")
+	_, _ = cyan.Print("Sniping Discord Nitro")
+	if settings.GiveawaySniper == true {
+		_, _ = cyan.Print(" and Giveaway")
+	}
+	_, _ = cyan.Print(" on " + strconv.Itoa(len(dg.State.Guilds)) + " Servers 🔫\n\n")
 
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Bot is ready")
@@ -199,10 +206,10 @@ func checkCode(bodyString string, code string, sender string) {
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 	if strings.Contains(bodyString, "redeemed") {
 		color.Yellow("[-] " + response.Message)
-		webhook(code, response.Message, sender, "16774415")
+		webhook("Nitro Sniped", code, response.Message, sender, "16774415")
 	} else if strings.Contains(bodyString, "nitro") {
 		_, _ = green.Println("[+] " + response.Message)
-		webhook(code, response.Message, sender, "2948879")
+		webhook("Nitro Sniped", code, response.Message, sender, "2948879")
 		NitroSniped++
 		if NitroSniped == settings.NitroMax {
 			SniperRunning = false
@@ -213,11 +220,11 @@ func checkCode(bodyString string, code string, sender string) {
 		}
 	} else if strings.Contains(bodyString, "Unknown Gift Code") {
 		_, _ = red.Println("[x] " + response.Message)
-		webhook(code, response.Message, sender, "16715535")
+		webhook("Nitro Sniped", code, response.Message, sender, "16715535")
 
 	} else {
 		color.Yellow("[?] " + response.Message)
-		webhook(code, response.Message, sender, "16744975")
+		webhook("Nitro Sniped", code, response.Message, sender, "16744975")
 	}
 
 }
@@ -336,24 +343,30 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 		}
+
 		if giveawayID == nil {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = green.Print("[+] Won Giveaway")
 			if len(won) > 1 {
 				_, _ = green.Print(": ")
 				_, _ = cyan.Println(won[1])
+				webhook("Giveaway Won", won[1], "", guild.Name+" > "+channel.Name, "2948879")
 			}
+			webhook("Giveaway Won", "", "", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-
 			return
 		}
+
 		messages, _ := s.ChannelMessages(m.ChannelID, 1, "", "", giveawayID[3])
 
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = green.Print("[+] Won Giveaway")
 		if len(won) > 1 {
 			_, _ = green.Print(": ")
+			webhook("Giveaway Won", won[1], "", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = cyan.Print(won[1])
+		} else {
+			webhook("Giveaway Won", "", "", guild.Name+" > "+channel.Name, "2948879")
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 

@@ -5,7 +5,10 @@
   "giveaway_sniper": true,
   "nitro_giveaway_sniper": true,
   "giveaway_dm": "",
-  "webhook": "",
+  "webhook": {
+    "url": "",
+    "good_only": true
+  },
   "blacklist_servers": [
     "727880228696457325",
     "727888218646457612"
