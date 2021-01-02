@@ -6,7 +6,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -121,13 +120,9 @@ func getPaymentSourceId() {
 	}
 }
 func init() {
-	file, err := ioutil.ReadFile("settings.json")
-	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed read file: %s\n", err)
-		os.Exit(1)
-	}
+	var file = os.Getenv("SETTINGS")
 
-	err = json.Unmarshal(file, &settings)
+	var err = json.Unmarshal([]byte(file), &settings)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse JSON file: %s\n", err)
 		os.Exit(1)
