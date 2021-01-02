@@ -11,6 +11,19 @@ Discord Nitro sniper and Giveaway joiner in Go.
 
 ![Screenshot](screenshot.png)
 
+
+
+### Features 
+* Uses Fast HTTP package for Go (faster than Python requests).
+* Optional Counter for max Nitro activations
+* Cooldown for # hour(s) after redeeming # nitro code(s).
+* Optional Nitro Giveway joiner.
+* DM host with custom DM message if giveaway won.
+* Fake/duplicate code detection to avoid being banned.
+* Webhook support with extended features like 'report failed codes/giveaway entries'.
+* Webhook returns color based on success or failure (green/red)
+
+
 #### Usage
 
 Edit `settings.json`
