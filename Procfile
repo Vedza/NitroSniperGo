@@ -1,1 +1,1 @@
-worker: ./NitroSniperGo
+worker: bin//NitroSniperGo
