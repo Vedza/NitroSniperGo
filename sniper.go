@@ -252,7 +252,7 @@ func main() {
 	} else if settings.PrivnoteSniper == true {
 		_, _ = cyan.Print(" and Privnote")
 	}
-	_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " Servers 🔫\n\n")
+	_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " Servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
 
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Bot is ready")
@@ -524,14 +524,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var cryptData = rePrivnoteData.FindStringSubmatch(string(body))[1]
 		cryptData = cryptData[:len(cryptData)-1]
 
-		println(string(cryptData))
-		println(strings.Replace(cryptData, "\\n", "", -1))
 		var cryptBytes, _ = Base64Decode([]byte(strings.Replace(cryptData, "\\n", "", -1)))
-		var test = base64.StdEncoding.EncodeToString(cryptBytes)
-		println(string(test))
-		var test2, _ = Base64Decode([]byte(strings.Trim(test, "\\n")))
-		println(len(cryptBytes))
-		println(len(test2))
 
 		var salt = cryptBytes[8:16]
 		cryptBytes = cryptBytes[16:]

@@ -14,7 +14,10 @@ Discord Nitro sniper and Giveaway joiner in Go.
 Edit `settings.json`
 ``` json5
 {
-  "token": "", // Your token here
+  "main_token": "", // Your token here
+  "alts_tokens": [
+    "" // Alts token
+  ],
   "nitro_max": 2, // Maxi Nitro before cooldown
   "cooldown": 24, // in Hour
   "giveaway_sniper": true // Enable or not giveaway joiner
