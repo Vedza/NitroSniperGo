@@ -20,16 +20,18 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode/utf8"
 )
 
 type Settings struct {
-	Token               string `json:"token"`
-	NitroMax            int    `json:"nitro_max"`
-	Cooldown            int    `json:"cooldown"`
-	GiveawaySniper      bool   `json:"giveaway_sniper"`
-	PrivnoteSniper      bool   `json:"privnote_sniper"`
-	NitroGiveawaySniper bool   `json:"nitro_giveaway_sniper"`
-	GiveawayDm          string `json:"giveaway_dm"`
+	Maintoken           string   `json:"main_token"`
+	AltsTokens          []string `json:"alts_tokens"`
+	NitroMax            int      `json:"nitro_max"`
+	Cooldown            int      `json:"cooldown"`
+	GiveawaySniper      bool     `json:"giveaway_sniper"`
+	PrivnoteSniper      bool     `json:"privnote_sniper"`
+	NitroGiveawaySniper bool     `json:"nitro_giveaway_sniper"`
+	GiveawayDm          string   `json:"giveaway_dm"`
 	Webhook             struct {
 		URL      string `json:"url"`
 		GoodOnly bool   `json:"good_only"`
@@ -48,6 +50,7 @@ var (
 	NitroSniped       int
 	SniperRunning     bool
 	settings          Settings
+	nbServers         int
 	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	rePrivnote        = regexp.MustCompile("(https://privnote.com/[0-9A-Za-z]+)#([0-9A-Za-z]+)")
 	rePrivnoteData    = regexp.MustCompile(`"data": "(.*)",`)
@@ -140,7 +143,7 @@ func webhook(title string, code string, response string, sender string, color st
 func getPaymentSourceId() {
 	var strRequestURI = []byte("https://discord.com/api/v8/users/@me/billing/payment-sources")
 	req := fasthttp.AcquireRequest()
-	req.Header.Set("authorization", settings.Token)
+	req.Header.Set("authorization", settings.Maintoken)
 	req.Header.SetMethodBytes([]byte("GET"))
 	req.SetRequestURIBytes(strRequestURI)
 	res := fasthttp.AcquireResponse()
@@ -184,21 +187,43 @@ func timerEnd() {
 	_, _ = green.Println("[+] Starting Nitro sniping")
 }
 
+func run(token string) {
+	dg, err := discordgo.New(token)
+	nbServers += len(dg.State.Guilds)
+	if err != nil {
+		fmt.Println("Error creating Discord session for "+token+" ,", err)
+		return
+	}
+	err = dg.Open()
+	if err != nil {
+		fmt.Println("Error opening connection,", err)
+		return
+	}
+	dg.AddHandler(messageCreate)
+}
+
 func main() {
-	dg, err := discordgo.New(settings.Token)
+	for _, token := range settings.AltsTokens {
+		go run(token)
+		time.Sleep(2000)
+	}
+
+	dg, err := discordgo.New(settings.Maintoken)
+
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
 
-	dg.AddHandler(messageCreate)
-
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
+		fmt.Println("Error opening connection,", err)
 		return
 	}
 
+	dg.AddHandler(messageCreate)
+
+	nbServers += len(dg.State.Guilds)
 	c := exec.Command("clear")
 
 	c.Stdout = os.Stdout
@@ -220,10 +245,14 @@ func main() {
 
 	t := time.Now()
 	_, _ = cyan.Print("Sniping Discord Nitro")
-	if settings.GiveawaySniper == true {
+	if settings.GiveawaySniper == true && settings.PrivnoteSniper == false {
 		_, _ = cyan.Print(" and Giveaway")
+	} else if settings.GiveawaySniper == true && settings.PrivnoteSniper == true {
+		_, _ = cyan.Print(", Giveaway and Privnote")
+	} else if settings.PrivnoteSniper == true {
+		_, _ = cyan.Print(" and Privnote")
 	}
-	_, _ = cyan.Print(" on " + strconv.Itoa(len(dg.State.Guilds)) + " Servers 🔫\n\n")
+	_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " Servers 🔫\n\n")
 
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Bot is ready")
@@ -295,7 +324,7 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	var strRequestURI = []byte("https://discordapp.com/api/v8/entitlements/gift-codes/" + code[2] + "/redeem")
 	req := fasthttp.AcquireRequest()
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", settings.Token)
+	req.Header.Set("authorization", settings.Maintoken)
 	req.SetBody([]byte(`{"channel_id":` + m.ChannelID + `,"payment_source_id": ` + paymentSourceID + `}`))
 	req.Header.SetMethodBytes([]byte("POST"))
 	req.SetRequestURIBytes(strRequestURI)
@@ -491,7 +520,14 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var cryptData = rePrivnoteData.FindStringSubmatch(string(body))[1]
 		cryptData = cryptData[:len(cryptData)-1]
 
-		var cryptBytes, _ = Base64Decode([]byte(strings.Trim(cryptData, "\n")))
+		println(string(cryptData))
+		println(strings.Replace(cryptData, "\\n", "", -1))
+		var cryptBytes, _ = Base64Decode([]byte(strings.Replace(cryptData, "\\n", "", -1)))
+		var test = base64.StdEncoding.EncodeToString(cryptBytes)
+		println(string(test))
+		var test2, _ = Base64Decode([]byte(strings.Trim(test, "\\n")))
+		println(len(cryptBytes))
+		println(len(test2))
 
 		var salt = cryptBytes[8:16]
 		cryptBytes = cryptBytes[16:]
@@ -510,6 +546,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			defer f.Close()
 
+			if !utf8.ValidString(data) {
+				clean := make([]rune, 0, len(data))
+				for i, r := range data {
+					if r == utf8.RuneError {
+						_, size := utf8.DecodeRuneInString(data[i:])
+						if size == 1 {
+							continue
+						}
+					}
+					clean = append(clean, r)
+				}
+				data = string(clean)
+			}
 			_, err2 := f.WriteString(data + "\n")
 
 			if err2 != nil {
