@@ -325,7 +325,11 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	req := fasthttp.AcquireRequest()
 	req.Header.SetContentType("application/json")
 	req.Header.Set("authorization", settings.Maintoken)
-	req.SetBody([]byte(`{"channel_id":` + m.ChannelID + `,"payment_source_id": ` + paymentSourceID + `}`))
+	var channelId = "null"
+	if s.Token == settings.Maintoken {
+		channelId = m.ChannelID
+	}
+	req.SetBody([]byte(`{"channel_id":` + channelId + `,"payment_source_id": ` + paymentSourceID + `}`))
 	req.Header.SetMethodBytes([]byte("POST"))
 	req.SetRequestURIBytes(strRequestURI)
 	res := fasthttp.AcquireResponse()
