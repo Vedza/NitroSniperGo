@@ -187,9 +187,8 @@ func timerEnd() {
 	_, _ = green.Println("[+] Starting Nitro sniping")
 }
 
-func run(token string) {
+func run(token string, finished chan bool, index int) {
 	dg, err := discordgo.New(token)
-	nbServers += len(dg.State.Guilds)
 	if err != nil {
 		fmt.Println("Error creating Discord session for "+token+" ,", err)
 		return
@@ -199,13 +198,18 @@ func run(token string) {
 		fmt.Println("Error opening connection,", err)
 		return
 	}
+	nbServers += len(dg.State.Guilds)
 	dg.AddHandler(messageCreate)
+	if index == len(settings.AltsTokens)-1 {
+		finished <- true
+	}
 }
 
 func main() {
-	for _, token := range settings.AltsTokens {
-		go run(token)
-		time.Sleep(2000)
+	finished := make(chan bool)
+
+	for i, token := range settings.AltsTokens {
+		go run(token, finished, i)
 	}
 
 	dg, err := discordgo.New(settings.Maintoken)
@@ -222,6 +226,8 @@ func main() {
 	}
 
 	dg.AddHandler(messageCreate)
+
+	<-finished
 
 	nbServers += len(dg.State.Guilds)
 	c := exec.Command("clear")
@@ -252,10 +258,10 @@ func main() {
 	} else if settings.PrivnoteSniper == true {
 		_, _ = cyan.Print(" and Privnote")
 	}
-	_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " Servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
+	_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
 
 	_, _ = magenta.Print(t.Format("15:04:05 "))
-	fmt.Println("[+] Bot is ready")
+	fmt.Println("[+] Sniper is ready")
 	userID = dg.State.User.ID
 
 	sc := make(chan os.Signal, 1)
