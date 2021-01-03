@@ -5,6 +5,7 @@
   "giveaway_sniper": true,
   "nitro_giveaway_sniper": true,
   "giveaway_dm": "",
+  "privnote_sniper": true,
   "webhook": {
     "url": "",
     "good_only": true

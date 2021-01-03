@@ -1,12 +1,17 @@
 package main
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/md5"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -22,6 +27,7 @@ type Settings struct {
 	NitroMax            int    `json:"nitro_max"`
 	Cooldown            int    `json:"cooldown"`
 	GiveawaySniper      bool   `json:"giveaway_sniper"`
+	PrivnoteSniper      bool   `json:"privnote_sniper"`
 	NitroGiveawaySniper bool   `json:"nitro_giveaway_sniper"`
 	GiveawayDm          string `json:"giveaway_dm"`
 	Webhook             struct {
@@ -43,7 +49,8 @@ var (
 	SniperRunning     bool
 	settings          Settings
 	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
-	_                 = regexp.MustCompile("https://privnote.com/.*")
+	rePrivnote        = regexp.MustCompile("(https://privnote.com/[0-9A-Za-z]+)#([0-9A-Za-z]+)")
+	rePrivnoteData    = regexp.MustCompile(`"data": "(.*)",`)
 	reGiveaway        = regexp.MustCompile("You won the \\*\\*(.*)\\*\\*")
 	reGiveawayMessage = regexp.MustCompile("<https://discordapp.com/channels/(.*)/(.*)/(.*)>")
 	rePaymentSourceId = regexp.MustCompile(`("id": ")([0-9]+)"`)
@@ -53,6 +60,41 @@ var (
 	red               = color.New(color.FgRed)
 	cyan              = color.New(color.FgCyan)
 )
+
+func Ase256(ciphertext []byte, key string, iv string) string {
+	block, err := aes.NewCipher([]byte(key[:]))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	newtext := make([]byte, len(ciphertext))
+	dec := cipher.NewCBCDecrypter(block, []byte(iv))
+	dec.CryptBlocks(newtext, ciphertext)
+	return string(newtext)
+}
+
+func MD5(text string) string {
+	hash := md5.Sum([]byte(text))
+	return string(hash[:])
+}
+
+func openSSLKey(password []byte, salt []byte) (string, string) {
+	pass_salt := string(password) + string(salt)
+
+	result := MD5(pass_salt)
+
+	cur_hash := MD5(pass_salt)
+	for i := 0; i < 2; i++ {
+		cur := MD5(cur_hash + pass_salt)
+		cur_hash = cur
+		result += cur
+	}
+	return result[0 : 4*8], result[4*8 : 4*8+16]
+}
+
+func Base64Decode(message []byte) (b []byte, err error) {
+	return base64.StdEncoding.DecodeString(string(message))
+}
 
 func contains(array []string, value string) bool {
 	for _, v := range array {
@@ -229,70 +271,79 @@ func checkCode(bodyString string, code string, sender string) {
 
 }
 
+func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string, privnote bool) {
+
+	code := re.FindStringSubmatch(link)
+
+	if len(code) < 2 {
+		return
+	}
+
+	if privnote == true {
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = green.Print("[+] Found a gift link in it: ")
+		_, _ = green.Println(code[2])
+	}
+
+	if len(code[2]) < 16 {
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = red.Print("[=] Auto-detected a fake code: ")
+		_, _ = red.Print(code[2])
+		fmt.Println(" from " + m.Author.String())
+		return
+	}
+	var strRequestURI = []byte("https://discordapp.com/api/v8/entitlements/gift-codes/" + code[2] + "/redeem")
+	req := fasthttp.AcquireRequest()
+	req.Header.SetContentType("application/json")
+	req.Header.Set("authorization", settings.Token)
+	req.SetBody([]byte(`{"channel_id":` + m.ChannelID + `,"payment_source_id": ` + paymentSourceID + `}`))
+	req.Header.SetMethodBytes([]byte("POST"))
+	req.SetRequestURIBytes(strRequestURI)
+	res := fasthttp.AcquireResponse()
+
+	if err := fasthttp.Do(req, res); err != nil {
+		panic("handle error")
+	}
+
+	fasthttp.ReleaseRequest(req)
+
+	body := res.Body()
+
+	bodyString := string(body)
+	fasthttp.ReleaseResponse(res)
+
+	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+	_, _ = green.Print("[-] Sniped code: ")
+	_, _ = red.Print(code[2])
+	guild, err := s.State.Guild(m.GuildID)
+	if err != nil || guild == nil {
+		guild, err = s.Guild(m.GuildID)
+		if err != nil {
+			println()
+			checkCode(bodyString, code[2], "")
+			return
+		}
+	}
+
+	channel, err := s.State.Channel(m.ChannelID)
+	if err != nil || guild == nil {
+		channel, err = s.Channel(m.ChannelID)
+		if err != nil {
+			println()
+			checkCode(bodyString, code[2], guild.Name+" > "+channel.Name)
+			return
+		}
+	}
+
+	print(" from " + m.Author.String())
+	_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
+	checkCode(bodyString, code[2], guild.Name+" > "+channel.Name)
+}
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if re.Match([]byte(m.Content)) && SniperRunning {
-
-		code := re.FindStringSubmatch(m.Content)
-
-		if len(code) < 2 {
-			return
-		}
-
-		if len(code[2]) < 16 {
-			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = red.Print("[=] Auto-detected a fake code: ")
-			_, _ = red.Print(code[2])
-			fmt.Println(" from " + m.Author.String())
-			return
-		}
-		var strRequestURI = []byte("https://discordapp.com/api/v8/entitlements/gift-codes/" + code[2] + "/redeem")
-		req := fasthttp.AcquireRequest()
-		req.Header.SetContentType("application/json")
-		req.Header.Set("authorization", settings.Token)
-		req.SetBody([]byte(`{"channel_id":` + m.ChannelID + `,"payment_source_id": ` + paymentSourceID + `}`))
-		req.Header.SetMethodBytes([]byte("POST"))
-		req.SetRequestURIBytes(strRequestURI)
-		res := fasthttp.AcquireResponse()
-
-		if err := fasthttp.Do(req, res); err != nil {
-			panic("handle error")
-		}
-
-		fasthttp.ReleaseRequest(req)
-
-		body := res.Body()
-
-		bodyString := string(body)
-		fasthttp.ReleaseResponse(res)
-
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[-] Sniped code: ")
-		_, _ = red.Print(code[2])
-		guild, err := s.State.Guild(m.GuildID)
-		if err != nil || guild == nil {
-			guild, err = s.Guild(m.GuildID)
-			if err != nil {
-				println()
-				checkCode(bodyString, code[2], "")
-				return
-			}
-		}
-
-		channel, err := s.State.Channel(m.ChannelID)
-		if err != nil || guild == nil {
-			channel, err = s.Channel(m.ChannelID)
-			if err != nil {
-				println()
-				checkCode(bodyString, code[2], guild.Name+" > "+channel.Name)
-				return
-			}
-		}
-
-		print(" from " + m.Author.String())
-		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-		checkCode(bodyString, code[2], guild.Name+" > "+channel.Name)
-
+		checkGiftLink(s, m, m.Content, false)
 	} else if settings.GiveawaySniper && !contains(settings.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
 		if settings.NitroGiveawaySniper {
 			if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
@@ -392,6 +443,83 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			_, _ = green.Print("[+] Sent DM to host: ")
 			_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
 		}
+	} else if rePrivnote.Match([]byte(m.Content)) && settings.PrivnoteSniper {
+		var link = rePrivnote.FindStringSubmatch(m.Content)
+		var strRequestURI = link[1]
+		var password = link[2]
+
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = green.Print("[-] Sniped PrivNote: " + rePrivnote.FindStringSubmatch(m.Content)[0])
+
+		print(" from " + m.Author.String())
+
+		guild, err := s.State.Guild(m.GuildID)
+		if err != nil || guild == nil {
+			guild, err = s.Guild(m.GuildID)
+			if err != nil {
+				return
+			}
+		}
+
+		channel, err := s.State.Channel(m.ChannelID)
+		if err != nil || guild == nil {
+			channel, err = s.Channel(m.ChannelID)
+			if err != nil {
+				return
+			}
+		}
+		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
+
+		req := fasthttp.AcquireRequest()
+		req.Header.SetMethodBytes([]byte("DELETE"))
+		req.Header.Set("X-Requested-With", "XMLHttpRequest")
+		req.SetRequestURIBytes([]byte(strRequestURI))
+		res := fasthttp.AcquireResponse()
+
+		if err := fasthttp.Do(req, res); err != nil {
+			panic("handle error")
+		}
+
+		fasthttp.ReleaseRequest(req)
+
+		body := res.Body()
+		if !rePrivnoteData.Match(body) {
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = red.Println("[x] Privnote already destroyed")
+			return
+		}
+		var cryptData = rePrivnoteData.FindStringSubmatch(string(body))[1]
+		cryptData = cryptData[:len(cryptData)-1]
+
+		var cryptBytes, _ = Base64Decode([]byte(strings.Trim(cryptData, "\n")))
+
+		var salt = cryptBytes[8:16]
+		cryptBytes = cryptBytes[16:]
+
+		key, iv := openSSLKey([]byte(password), salt)
+		data := Ase256(cryptBytes, key, iv)
+		if re.Match([]byte(data)) && SniperRunning {
+			checkGiftLink(s, m, data, true)
+		} else {
+			f, err := os.OpenFile("privnotes.txt",
+				os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			defer f.Close()
+
+			_, err2 := f.WriteString(data + "\n")
+
+			if err2 != nil {
+				log.Fatal(err2)
+			}
+
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = yellow.Print("[-] Wrote the content of the privnote to privnotes.txt")
+		}
+
 	}
 
 }
