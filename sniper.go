@@ -113,12 +113,20 @@ func webhook(title string, code string, response string, sender string, color st
 	if settings.Webhook.URL == "" || (color != "2948879" && settings.Webhook.GoodOnly == true) {
 		return
 	}
+
+	if len(sender) > 0 {
+		sender = "*" + sender + "*"
+	}
+
+	if len(code) > 0 {
+		code = "**" + code + "**"
+	}
 	var body = `{
 		"content": null,
 		"embeds": [
 	{
 		"title": "` + title + `",
-		"description": "**` + code + `**\n*` + sender + `*\n` + response + `",
+		"description": "` + code + `\n` + sender + `\n` + response + `",
 		"color": ` + color + `
 	}
 ],
