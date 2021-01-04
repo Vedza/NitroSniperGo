@@ -82,14 +82,14 @@ func MD5(text string) string {
 }
 
 func openSSLKey(password []byte, salt []byte) (string, string) {
-	pass_salt := string(password) + string(salt)
+	passSalt := string(password) + string(salt)
 
-	result := MD5(pass_salt)
+	result := MD5(passSalt)
 
-	cur_hash := MD5(pass_salt)
+	curHash := MD5(passSalt)
 	for i := 0; i < 2; i++ {
-		cur := MD5(cur_hash + pass_salt)
-		cur_hash = cur
+		cur := MD5(curHash + passSalt)
+		curHash = cur
 		result += cur
 	}
 	return result[0 : 4*8], result[4*8 : 4*8+16]

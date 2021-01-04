@@ -5,9 +5,20 @@
 
 <a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
+
 Discord Nitro sniper and Giveaway joiner in Go.
 
 ![Screenshot](screenshot.png)
+
+#### Features 
+* Multiple accounts support to claim on one main account
+* Optional Counter for max Nitro activations
+* Cooldown for # hour(s) after redeeming # nitro code(s)
+* Optional Giveaway joiner and only Nitro Giveaway joiner
+* Optional Privnote sniper
+* DM host with custom DM message if giveaway won
+* Webhook support with good only mode that report only codes applied and giveaways won.
 
 #### Usage
 
@@ -35,7 +46,7 @@ Edit `settings.json`
 }
 ```
 
-Compile it or download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
+Compile it yourself, [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) or download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
 ``` sh
  go mod download
  go build
