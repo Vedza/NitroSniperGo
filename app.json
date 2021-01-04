@@ -11,7 +11,7 @@
   "env": {
     "SETTINGS": {
       "description": "Settings",
-      "value": "{\n  \"token\": \"\",\n  \"nitro_max\": 2,\n  \"cooldown\": 24,\n  \"giveaway_sniper\": true,\n  \"nitro_giveaway_sniper\": true,\n  \"giveaway_dm\": \"\",\n  \"webhook\": {\n    \"url\": \"\",\n    \"good_only\": true\n  },\n  \"blacklist_servers\": [\n    \"727880228696457325\",\n    \"727888218646457612\"\n  ]\n}"
+      "value": "{\n  \"main_token\": \"\",\n  \"alts_tokens\": [\n    \"\",\n    \"\"\n  ],\n  \"nitro_max\": 2,\n  \"cooldown\": 24,\n  \"giveaway_sniper\": true,\n  \"nitro_giveaway_sniper\": true,\n  \"giveaway_dm\": \"\",\n  \"privnote_sniper\": true,\n  \"webhook\": {\n    \"url\": \"\",\n    \"good_only\": false\n  },\n  \"blacklist_servers\": [\n    \"\",\n    \"\"\n  ]\n}"
     }
   }
 }
