@@ -199,25 +199,43 @@ func run(token string, finished chan bool, index int) {
 	dg, err := discordgo.New(token)
 	if err != nil {
 		fmt.Println("Error creating Discord session for "+token+" ,", err)
-		return
+	} else {
+		err = dg.Open()
+		if err != nil {
+			fmt.Println("Error opening connection,", err)
+		} else {
+			nbServers += len(dg.State.Guilds)
+			userID = dg.State.User.ID
+			dg.AddHandler(messageCreate)
+		}
 	}
-	err = dg.Open()
-	if err != nil {
-		fmt.Println("Error opening connection,", err)
-		return
-	}
-	nbServers += len(dg.State.Guilds)
-	dg.AddHandler(messageCreate)
 	if index == len(settings.AltsTokens)-1 {
 		finished <- true
 	}
+
+}
+
+func deleteEmpty(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
 }
 
 func main() {
 	finished := make(chan bool)
 
-	for i, token := range settings.AltsTokens {
-		go run(token, finished, i)
+	settings.AltsTokens = deleteEmpty(settings.AltsTokens)
+
+	if len(settings.AltsTokens) != 0 {
+		for i, token := range settings.AltsTokens {
+			go run(token, finished, i)
+		}
+	} else {
+		finished <- true
 	}
 
 	dg, err := discordgo.New(settings.Maintoken)
@@ -234,6 +252,7 @@ func main() {
 	}
 
 	dg.AddHandler(messageCreate)
+	userID = dg.State.User.ID
 
 	<-finished
 
@@ -270,7 +289,6 @@ func main() {
 
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Sniper is ready")
-	userID = dg.State.User.ID
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
@@ -422,7 +440,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		_ = s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
 
-	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, userID) {
+	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, userID) && userID != "" {
 		reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
 		won := reGiveaway.FindStringSubmatch(m.Content)
 		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Content)
