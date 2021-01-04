@@ -19,6 +19,7 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Optional Privnote sniper
 * DM host with custom DM message if giveaway won
 * Webhook support with good only mode that report only codes applied and giveaways won.
+* Blacklist servers to not join any giveaways on these servers
 
 #### Usage
 
@@ -26,8 +27,10 @@ Edit `settings.json`
 ``` json5
 {
   "main_token": "", // Your token here
-  "alts_tokens": [
-    "" // Alts token
+  "alts_tokens": [ // Alts token
+    "",  // Token1
+    "",  // Token2
+         // ...
   ],
   "nitro_max": 2, // Maxi Nitro before cooldown
   "cooldown": 24, // in Hour
