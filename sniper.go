@@ -10,7 +10,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
