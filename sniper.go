@@ -45,7 +45,6 @@ type Response struct {
 }
 
 var (
-	userID            string
 	paymentSourceID   string
 	NitroSniped       int
 	SniperRunning     bool
@@ -205,7 +204,6 @@ func run(token string, finished chan bool, index int) {
 			fmt.Println("Error opening connection,", err)
 		} else {
 			nbServers += len(dg.State.Guilds)
-			userID = dg.State.User.ID
 			dg.AddHandler(messageCreate)
 		}
 	}
@@ -234,8 +232,6 @@ func main() {
 		for i, token := range settings.AltsTokens {
 			go run(token, finished, i)
 		}
-	} else {
-		finished <- true
 	}
 
 	dg, err := discordgo.New(settings.Maintoken)
@@ -252,9 +248,10 @@ func main() {
 	}
 
 	dg.AddHandler(messageCreate)
-	userID = dg.State.User.ID
 
-	<-finished
+	if len(settings.AltsTokens) != 0 {
+		<-finished
+	}
 
 	nbServers += len(dg.State.Guilds)
 	c := exec.Command("clear")
@@ -440,7 +437,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		_ = s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
 
-	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, userID) && userID != "" {
+	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, s.State.User.ID) {
 		reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
 		won := reGiveaway.FindStringSubmatch(m.Content)
 		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Content)
@@ -462,13 +459,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		if giveawayID == nil {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = green.Print("[+] Won Giveaway")
+			_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 			if len(won) > 1 {
 				_, _ = green.Print(": ")
 				_, _ = cyan.Println(won[1])
-				webhook("Giveaway Won", won[1], "", guild.Name+" > "+channel.Name, "2948879")
+				webhook(s.State.User.Username+" Won Giveaway", won[1], "", guild.Name+" > "+channel.Name, "2948879")
 			}
-			webhook("Giveaway Won", "", "", guild.Name+" > "+channel.Name, "2948879")
+			webhook(s.State.User.Username+" Won Giveaway", "", "", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 			return
 		}
@@ -476,13 +473,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		messages, _ := s.ChannelMessages(m.ChannelID, 1, "", "", giveawayID[3])
 
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[+] Won Giveaway")
+		_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 		if len(won) > 1 {
 			_, _ = green.Print(": ")
-			webhook("Giveaway Won", won[1], "", guild.Name+" > "+channel.Name, "2948879")
+			webhook(s.State.User.Username+" Won Giveaway", won[1], "", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = cyan.Print(won[1])
 		} else {
-			webhook("Giveaway Won", "", "", guild.Name+" > "+channel.Name, "2948879")
+			webhook(s.State.User.Username+" Won Giveaway", "", "", guild.Name+" > "+channel.Name, "2948879")
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
