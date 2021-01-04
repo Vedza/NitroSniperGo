@@ -30,7 +30,7 @@ Edit `settings.json`
   "alts_tokens": [ // Alts token
     "",  // Token1
     "",  // Token2
-    ...
+         // ...
   ],
   "nitro_max": 2, // Maxi Nitro before cooldown
   "cooldown": 24, // in Hour
