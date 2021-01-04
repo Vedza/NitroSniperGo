@@ -44,7 +44,6 @@ type Response struct {
 }
 
 var (
-	userID            string
 	paymentSourceID   string
 	NitroSniped       int
 	SniperRunning     bool
@@ -194,25 +193,40 @@ func run(token string, finished chan bool, index int) {
 	dg, err := discordgo.New(token)
 	if err != nil {
 		fmt.Println("Error creating Discord session for "+token+" ,", err)
-		return
+	} else {
+		err = dg.Open()
+		if err != nil {
+			fmt.Println("Error opening connection,", err)
+		} else {
+			nbServers += len(dg.State.Guilds)
+			dg.AddHandler(messageCreate)
+		}
 	}
-	err = dg.Open()
-	if err != nil {
-		fmt.Println("Error opening connection,", err)
-		return
-	}
-	nbServers += len(dg.State.Guilds)
-	dg.AddHandler(messageCreate)
 	if index == len(settings.AltsTokens)-1 {
 		finished <- true
 	}
+
+}
+
+func deleteEmpty(s []string) []string {
+	var r []string
+	for _, str := range s {
+		if str != "" {
+			r = append(r, str)
+		}
+	}
+	return r
 }
 
 func main() {
 	finished := make(chan bool)
 
-	for i, token := range settings.AltsTokens {
-		go run(token, finished, i)
+	settings.AltsTokens = deleteEmpty(settings.AltsTokens)
+
+	if len(settings.AltsTokens) != 0 {
+		for i, token := range settings.AltsTokens {
+			go run(token, finished, i)
+		}
 	}
 
 	dg, err := discordgo.New(settings.Maintoken)
@@ -230,7 +244,9 @@ func main() {
 
 	dg.AddHandler(messageCreate)
 
-	<-finished
+	if len(settings.AltsTokens) != 0 {
+		<-finished
+	}
 
 	nbServers += len(dg.State.Guilds)
 	c := exec.Command("clear")
@@ -265,7 +281,6 @@ func main() {
 
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Sniper is ready")
-	userID = dg.State.User.ID
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
@@ -417,7 +432,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		_ = s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
 
-	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, userID) {
+	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, s.State.User.ID) {
 		reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
 		won := reGiveaway.FindStringSubmatch(m.Content)
 		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Content)
@@ -439,13 +454,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		if giveawayID == nil {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = green.Print("[+] Won Giveaway")
+			_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 			if len(won) > 1 {
 				_, _ = green.Print(": ")
 				_, _ = cyan.Println(won[1])
-				webhook("Giveaway Won", won[1], "", guild.Name+" > "+channel.Name, "2948879")
+				webhook(s.State.User.Username+" Won Giveaway", won[1], "", guild.Name+" > "+channel.Name, "2948879")
 			}
-			webhook("Giveaway Won", "", "", guild.Name+" > "+channel.Name, "2948879")
+			webhook(s.State.User.Username+" Won Giveaway", "", "", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 			return
 		}
@@ -453,13 +468,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		messages, _ := s.ChannelMessages(m.ChannelID, 1, "", "", giveawayID[3])
 
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[+] Won Giveaway")
+		_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 		if len(won) > 1 {
 			_, _ = green.Print(": ")
-			webhook("Giveaway Won", won[1], "", guild.Name+" > "+channel.Name, "2948879")
+			webhook(s.State.User.Username+" Won Giveaway", won[1], "", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = cyan.Print(won[1])
 		} else {
-			webhook("Giveaway Won", "", "", guild.Name+" > "+channel.Name, "2948879")
+			webhook(s.State.User.Username+" Won Giveaway", "", "", guild.Name+" > "+channel.Name, "2948879")
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
