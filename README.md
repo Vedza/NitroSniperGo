@@ -7,22 +7,34 @@
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
 
-
 Discord Nitro sniper and Giveaway joiner in Go.
 
 ![Screenshot](screenshot.png)
+
+#### Features 
+* Multiple accounts support to claim on one main account
+* Optional Counter for max Nitro activations
+* Cooldown for # hour(s) after redeeming # nitro code(s)
+* Optional Giveaway joiner and only Nitro Giveaway joiner
+* Optional Privnote sniper
+* DM host with custom DM message if giveaway won
+* Webhook support with good only mode that report only codes applied and giveaways won.
 
 #### Usage
 
 Edit `settings.json`
 ``` json5
 {
-  "token": "", // Your token here
+  "main_token": "", // Your token here
+  "alts_tokens": [
+    "" // Alts token
+  ],
   "nitro_max": 2, // Maxi Nitro before cooldown
   "cooldown": 24, // in Hour
   "giveaway_sniper": true // Enable or not giveaway joiner
   "nitro_giveaway_sniper": true, // Only join Nitro gieaways
   "giveaway_dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
+  "privnote_sniper": true, // Enable or not Privnote sniper
   "webhook": {
     "url": "",
     "good_only": true // Will trigger webhook only when you applied a Nitro code or won a giveaway
@@ -34,7 +46,7 @@ Edit `settings.json`
 }
 ```
 
-Compile it or download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
+Compile it yourself, [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) or download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
 ``` sh
  go mod download
  go build
