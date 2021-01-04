@@ -20,7 +20,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"unicode/utf8"
+	"unicode"
 )
 
 type Settings struct {
@@ -96,7 +96,7 @@ func openSSLKey(password []byte, salt []byte) (string, string) {
 }
 
 func Base64Decode(message []byte) (b []byte, err error) {
-	return base64.StdEncoding.DecodeString(string(message))
+	return base64.RawStdEncoding.DecodeString(string(message))
 }
 
 func contains(array []string, value string) bool {
@@ -325,7 +325,7 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	if privnote == true {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = green.Print("[+] Found a gift link in it: ")
-		_, _ = green.Println(code[2])
+		_, _ = red.Println(code[2])
 	}
 
 	if len(code[2]) < 16 {
@@ -530,15 +530,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		fasthttp.ReleaseRequest(req)
 
 		body := res.Body()
+
+		println(string(body))
 		if !rePrivnoteData.Match(body) {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = red.Println("[x] Privnote already destroyed")
 			return
 		}
 		var cryptData = rePrivnoteData.FindStringSubmatch(string(body))[1]
-		cryptData = cryptData[:len(cryptData)-1]
 
-		var cryptBytes, _ = Base64Decode([]byte(strings.Replace(cryptData, "\\n", "", -1)))
+		var cryptBytes, _ = Base64Decode([]byte(cryptData))
 
 		var salt = cryptBytes[8:16]
 		cryptBytes = cryptBytes[16:]
@@ -557,20 +558,21 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			defer f.Close()
 
-			if !utf8.ValidString(data) {
-				clean := make([]rune, 0, len(data))
-				for i, r := range data {
-					if r == utf8.RuneError {
-						_, size := utf8.DecodeRuneInString(data[i:])
-						if size == 1 {
-							continue
-						}
-					}
-					clean = append(clean, r)
+			clean := strings.Map(func(r rune) rune {
+				if unicode.IsGraphic(r) {
+					return r
 				}
-				data = string(clean)
-			}
-			_, err2 := f.WriteString(data + "\n")
+				return -1
+			}, data)
+
+			clean = strings.Map(func(r rune) rune {
+				if unicode.IsPrint(r) {
+					return r
+				}
+				return -1
+			}, data)
+
+			_, err2 := f.WriteString(clean + "\n")
 
 			if err2 != nil {
 				log.Fatal(err2)

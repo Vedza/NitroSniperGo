@@ -23,7 +23,7 @@ Edit `settings.json`
   "giveaway_sniper": true // Enable or not giveaway joiner
   "nitro_giveaway_sniper": true, // Only join Nitro gieaways
   "giveaway_dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
-  "privnote_sniper": true, // Enable or not Privnote joiner
+  "privnote_sniper": true, // Enable or not Privnote sniper
   "webhook": {
     "url": "",
     "good_only": true // Will trigger webhook only when you applied a Nitro code or won a giveaway
