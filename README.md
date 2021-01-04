@@ -59,5 +59,8 @@ Compile it yourself, [Deploy on Heroku](https://heroku.com/deploy?template=https
 #### How to obtain your token
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
 
+#### Known issues
+* Some welcome bots mention giveaways that might cause a false positive
+
 #### Disclaimer
 This is against TOS and can get your account banned, especially if you run multiple instance at the same time and/or claim too many Nitros in a too short amount of time. Use it at your own risks.
