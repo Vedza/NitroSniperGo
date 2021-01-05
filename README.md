@@ -61,6 +61,7 @@ https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-I
 
 #### Known issues
 * Some welcome bots mention giveaways that might cause a false positive
+* Privnote sniper makes the program crash sometimes, disable it in settings if that happens to you until I find a solution
 
 #### Disclaimer
 This is against TOS and can get your account banned, especially if you run multiple instance at the same time and/or claim too many Nitros in a too short amount of time. Use it at your own risks.
