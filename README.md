@@ -60,6 +60,7 @@ Compile it yourself, [Deploy on Heroku](https://heroku.com/deploy?template=https
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
 
 #### Known issues
+* It looks like Discord just added a feature where your token change every time but also expire, that might be the reason why the sniper doesn't work after some time or if you get an unauthorized error when sniping Nitro
 * Some welcome bots mention giveaways that might cause a false positive
 * Privnote sniper makes the program crash sometimes, disable it in settings if that happens to you until I find a solution
 
