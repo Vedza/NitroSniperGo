@@ -49,7 +49,7 @@ Edit `settings.json`
 }
 ```
 
-You have multiple choices to run: 
+You have multiple choices to run the sniper : 
 
 - [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) (Free 24/7)
    * Deploy
