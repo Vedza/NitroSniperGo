@@ -49,12 +49,21 @@ Edit `settings.json`
 }
 ```
 
-Compile it yourself, [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) or download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
-``` sh
- go mod download
- go build
- ./NitroSniperGo
- ```
+You have multiple choices to run: 
+
+- [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) (Free 24/7)
+   * Deploy
+   * Resources -> enable worker
+   * See logs in More -> View logs
+
+- Download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
+
+- Compile it yourself
+  ``` sh
+  go mod download
+  go build
+  ./NitroSniperGo
+  ```
  
 #### How to obtain your token
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
