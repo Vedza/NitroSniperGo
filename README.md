@@ -19,9 +19,11 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Optional Giveaway joiner and only Nitro Giveaway joiner
 * Optional Privnote sniper
 * Optional custom status
+* Optional Invite link sniper
 * DM host with custom DM message if giveaway won
 * Webhook support with good only mode that report only codes applied and giveaways won.
 * Blacklist servers to not join any giveaways on these servers
+* Custom delay to join giveaways, servers and join servers
 
 #### Usage
 
