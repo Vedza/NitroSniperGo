@@ -26,17 +26,23 @@ import (
 )
 
 type Settings struct {
-	Maintoken           string   `json:"main_token"`
-	AltsTokens          []string `json:"alts_tokens"`
-	NitroMax            int      `json:"nitro_max"`
-	Cooldown            int      `json:"cooldown"`
-	MainStatus          string   `json:"main_status"`
-	AltsStatus          string   `json:"alts_status"`
-	GiveawaySniper      bool     `json:"giveaway_sniper"`
-	PrivnoteSniper      bool     `json:"privnote_sniper"`
-	InviteSniper        bool     `json:"invite_sniper"`
-	NitroGiveawaySniper bool     `json:"nitro_giveaway_sniper"`
-	GiveawayDm          string   `json:"giveaway_dm"`
+	Maintoken       string   `json:"main_token"`
+	AltsTokens      []string `json:"alts_tokens"`
+	NitroMax        int      `json:"nitro_max"`
+	Cooldown        int      `json:"cooldown"`
+	MainStatus      string   `json:"main_status"`
+	AltsStatus      string   `json:"alts_status"`
+	GiveawaySniper  bool     `json:"giveaway_sniper"`
+	GiveawayDelay   int      `json:"giveaway_delay"`
+	GiveawayDm      string   `json:"giveaway_dm"`
+	GiveawayDMDelay int      `json:"giveaway_dm_delay"`
+	PrivnoteSniper  bool     `json:"privnote_sniper"`
+	InviteSniper    bool     `json:"invite_sniper"`
+	InviteDelay     struct {
+		Min int `json:"min"`
+		Max int `json:"max"`
+	} `json:"invite_delay"`
+	NitroGiveawaySniper bool `json:"nitro_giveaway_sniper"`
 	Webhook             struct {
 		URL      string `json:"url"`
 		GoodOnly bool   `json:"good_only"`
@@ -502,7 +508,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 		}
-		time.Sleep(time.Minute)
+		time.Sleep(time.Duration(settings.GiveawayDelay) * time.Second)
 		guild, err := s.State.Guild(m.GuildID)
 		if err != nil || guild == nil {
 			guild, err = s.Guild(m.GuildID)
@@ -583,7 +589,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if err != nil {
 				return
 			}
-			time.Sleep(time.Second * 9)
+			time.Sleep(time.Second * time.Duration(settings.GiveawayDMDelay))
 
 			_, err = s.ChannelMessageSend(hostChannel.ID, settings.GiveawayDm)
 			if err != nil {
@@ -696,9 +702,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		code := reInviteLink.FindStringSubmatch(m.Content)[1]
 
 		var f = join(code, s, m)
-		n := rand.Intn(10)
+		n := rand.Intn(settings.InviteDelay.Max - settings.InviteDelay.Min)
 
-		time.AfterFunc(time.Minute*(10+time.Duration(n)), f)
-
+		time.AfterFunc(time.Minute*(time.Duration(settings.InviteDelay.Min)+time.Duration(n)), f)
 	}
 }
