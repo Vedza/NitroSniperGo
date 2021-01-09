@@ -82,6 +82,7 @@ You have multiple choices to run the sniper :
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
 
 #### Known issues
+* `error unmarshalling READY event` is not a problem, it just happens because you're doing a self bot
 * It looks like Discord added a security feature where your token change every time but also expire, that might be the reason why the sniper doesn't work after some time or if you get an unauthorized error when sniping Nitro
 * Some welcome bots mention giveaways that might cause a false positive
 * Privnote sniper makes the program crash sometimes, disable it in settings if that happens to you until I find a solution
