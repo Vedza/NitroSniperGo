@@ -15,8 +15,10 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Multiple accounts support to claim on one main account
 * Optional Counter for max Nitro activations
 * Cooldown for # hour(s) after redeeming # nitro code(s)
+* Duplicate code detection
 * Optional Giveaway joiner and only Nitro Giveaway joiner
 * Optional Privnote sniper
+* Optional custom status
 * DM host with custom DM message if giveaway won
 * Webhook support with good only mode that report only codes applied and giveaways won.
 * Blacklist servers to not join any giveaways on these servers
