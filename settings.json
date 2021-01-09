@@ -1,9 +1,13 @@
 {
   "main_token": "",
-  "alts_tokens": [],
+  "alts_tokens": [
+    ""
+  ],
   "nitro_max": 2,
   "cooldown": 24,
   "giveaway_sniper": true,
+  "main_status": "",
+  "alts_status": "invisible",
   "nitro_giveaway_sniper": true,
   "giveaway_dm": "",
   "privnote_sniper": true,
@@ -12,7 +16,6 @@
     "good_only": false
   },
   "blacklist_servers": [
-    "",
     ""
   ]
 }
