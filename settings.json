@@ -11,6 +11,7 @@
   "nitro_giveaway_sniper": true,
   "giveaway_dm": "",
   "privnote_sniper": true,
+  "invite_sniper": true,
   "webhook": {
     "url": "",
     "good_only": false
