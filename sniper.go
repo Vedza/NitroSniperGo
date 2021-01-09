@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dgraph-io/ristretto"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
@@ -28,6 +29,8 @@ type Settings struct {
 	AltsTokens          []string `json:"alts_tokens"`
 	NitroMax            int      `json:"nitro_max"`
 	Cooldown            int      `json:"cooldown"`
+	MainStatus          string   `json:"main_status"`
+	AltsStatus          string   `json:"alts_status"`
 	GiveawaySniper      bool     `json:"giveaway_sniper"`
 	PrivnoteSniper      bool     `json:"privnote_sniper"`
 	NitroGiveawaySniper bool     `json:"nitro_giveaway_sniper"`
@@ -45,11 +48,16 @@ type Response struct {
 }
 
 var (
-	paymentSourceID   string
-	NitroSniped       int
-	SniperRunning     bool
-	settings          Settings
-	nbServers         int
+	paymentSourceID string
+	NitroSniped     int
+	SniperRunning   bool
+	settings        Settings
+	nbServers       int
+	cache, _        = ristretto.NewCache(&ristretto.Config{
+		NumCounters: 1e7,
+		MaxCost:     1 << 30,
+		BufferItems: 64,
+	})
 	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	rePrivnote        = regexp.MustCompile("(https://privnote.com/[0-9A-Za-z]+)#([0-9A-Za-z]+)")
 	rePrivnoteData    = regexp.MustCompile(`"data": "(.*)",`)
@@ -184,6 +192,7 @@ func init() {
 		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse JSON file: %s\n", err)
 		os.Exit(1)
 	}
+
 	NitroSniped = 0
 	SniperRunning = true
 }
@@ -205,12 +214,14 @@ func run(token string, finished chan bool, index int) {
 		} else {
 			nbServers += len(dg.State.Guilds)
 			dg.AddHandler(messageCreate)
+			if settings.AltsStatus != "" {
+				_, _ = dg.UserUpdateStatus(discordgo.Status(settings.AltsStatus))
+			}
 		}
 	}
 	if index == len(settings.AltsTokens)-1 {
 		finished <- true
 	}
-
 }
 
 func deleteEmpty(s []string) []string {
@@ -249,6 +260,10 @@ func main() {
 
 	dg.AddHandler(messageCreate)
 
+	if settings.MainStatus != "" {
+		_, _ = dg.UserUpdateStatus(discordgo.Status(settings.MainStatus))
+	}
+
 	if len(settings.AltsTokens) != 0 {
 		<-finished
 	}
@@ -282,7 +297,7 @@ func main() {
 	} else if settings.PrivnoteSniper == true {
 		_, _ = cyan.Print(" and Privnote")
 	}
-	_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
+	_, _ = cyan.Print(" for " + dg.State.User.Username + " on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
 
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Sniper is ready")
@@ -297,7 +312,6 @@ func main() {
 func checkCode(bodyString string, code string, sender string) {
 
 	var response Response
-
 	err := json.Unmarshal([]byte(bodyString), &response)
 
 	if err != nil {
@@ -326,6 +340,7 @@ func checkCode(bodyString string, code string, sender string) {
 		color.Yellow("[?] " + response.Message)
 		webhook("Nitro Sniped", code, response.Message, sender, "16744975")
 	}
+	cache.Set(code, "", 1)
 
 }
 
@@ -350,6 +365,16 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 		fmt.Println(" from " + m.Author.String())
 		return
 	}
+
+	_, found := cache.Get(code[2])
+	if found {
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = red.Print("[=] Auto-detected a duplicate code: ")
+		_, _ = red.Print(code[2])
+		fmt.Println(" from " + m.Author.String())
+		return
+	}
+
 	var strRequestURI = []byte("https://discordapp.com/api/v8/entitlements/gift-codes/" + code[2] + "/redeem")
 	req := fasthttp.AcquireRequest()
 	req.Header.SetContentType("application/json")
@@ -546,7 +571,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		body := res.Body()
 
-		println(string(body))
 		if !rePrivnoteData.Match(body) {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = red.Println("[x] Privnote already destroyed")
@@ -594,9 +618,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			webhook(s.State.User.Username+" Sniped Privnote", clean, "`"+cryptData+"`", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = yellow.Print("[-] Wrote the content of the privnote to privnotes.txt")
 		}
-
 	}
-
 }

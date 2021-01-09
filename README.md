@@ -34,6 +34,8 @@ Edit `settings.json`
   ],
   "nitro_max": 2, // Maxi Nitro before cooldown
   "cooldown": 24, // in Hour
+  "main_status": "", // online, offline, idle, dnd, invisible
+  "alts_status": "", // online, offline, idle, dnd, invisible
   "giveaway_sniper": true // Enable or not giveaway joiner
   "nitro_giveaway_sniper": true, // Only join Nitro gieaways
   "giveaway_dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
