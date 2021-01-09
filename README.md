@@ -2,7 +2,7 @@
 
 [![GitHub release](https://img.shields.io/github/release/Vedzaa/NitroSniperGo.svg?style=flat)](https://github.com/Vedzaa/NitroSniperGo/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/vedza/NitroSniperGo/total?style=flat)](https://github.com/vedza/NitroSniperGo/releases)
-
+[![Views](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/Vedza/NitroSniperGo&title=Views)](https://github.com/Vedza/NitroSniperGo)                    
 <a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
@@ -15,8 +15,10 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Multiple accounts support to claim on one main account
 * Optional Counter for max Nitro activations
 * Cooldown for # hour(s) after redeeming # nitro code(s)
+* Duplicate code detection
 * Optional Giveaway joiner and only Nitro Giveaway joiner
 * Optional Privnote sniper
+* Optional custom status
 * DM host with custom DM message if giveaway won
 * Webhook support with good only mode that report only codes applied and giveaways won.
 * Blacklist servers to not join any giveaways on these servers
@@ -34,6 +36,8 @@ Edit `settings.json`
   ],
   "nitro_max": 2, // Maxi Nitro before cooldown
   "cooldown": 24, // in Hour
+  "main_status": "", // online, offline, idle, dnd, invisible
+  "alts_status": "", // online, offline, idle, dnd, invisible
   "giveaway_sniper": true // Enable or not giveaway joiner
   "nitro_giveaway_sniper": true, // Only join Nitro gieaways
   "giveaway_dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
@@ -49,15 +53,29 @@ Edit `settings.json`
 }
 ```
 
-Compile it yourself, [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) or download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
-``` sh
- go mod download
- go build
- ./NitroSniperGo
- ```
+You have multiple choices to run the sniper : 
+
+- [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) (Free 24/7)
+   * Deploy
+   * Resources -> enable worker
+   * See logs in More -> View logs
+
+- Download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
+
+- Compile it yourself
+  ``` sh
+  go mod download
+  go build
+  ./NitroSniperGo
+  ```
  
 #### How to obtain your token
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
+
+#### Known issues
+* It looks like Discord added a security feature where your token change every time but also expire, that might be the reason why the sniper doesn't work after some time or if you get an unauthorized error when sniping Nitro
+* Some welcome bots mention giveaways that might cause a false positive
+* Privnote sniper makes the program crash sometimes, disable it in settings if that happens to you until I find a solution
 
 #### Disclaimer
 This is against TOS and can get your account banned, especially if you run multiple instance at the same time and/or claim too many Nitros in a too short amount of time. Use it at your own risks.
