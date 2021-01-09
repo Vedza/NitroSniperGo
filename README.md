@@ -40,8 +40,15 @@ Edit `settings.json`
   "alts_status": "", // online, offline, idle, dnd, invisible
   "giveaway_sniper": true // Enable or not giveaway joiner
   "nitro_giveaway_sniper": true, // Only join Nitro gieaways
+  "giveaway_delay": 2, // Delay in second before joining giveaway
   "giveaway_dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
+  "giveaway_dm_delay": 10, // Delay in second before sending DM
   "privnote_sniper": true, // Enable or not Privnote sniper
+  "invite_sniper": true, // Enable or not server invite sniper
+  "invite_delay": {
+    "min": 5, // Minimum delay in minute before joining server
+    "max": 10 // Maximum delay in minute before joining server
+  },
   "webhook": {
     "url": "",
     "good_only": true // Will trigger webhook only when you applied a Nitro code or won a giveaway

@@ -13,6 +13,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -25,16 +26,23 @@ import (
 )
 
 type Settings struct {
-	Maintoken           string   `json:"main_token"`
-	AltsTokens          []string `json:"alts_tokens"`
-	NitroMax            int      `json:"nitro_max"`
-	Cooldown            int      `json:"cooldown"`
-	MainStatus          string   `json:"main_status"`
-	AltsStatus          string   `json:"alts_status"`
-	GiveawaySniper      bool     `json:"giveaway_sniper"`
-	PrivnoteSniper      bool     `json:"privnote_sniper"`
-	NitroGiveawaySniper bool     `json:"nitro_giveaway_sniper"`
-	GiveawayDm          string   `json:"giveaway_dm"`
+	Maintoken       string   `json:"main_token"`
+	AltsTokens      []string `json:"alts_tokens"`
+	NitroMax        int      `json:"nitro_max"`
+	Cooldown        int      `json:"cooldown"`
+	MainStatus      string   `json:"main_status"`
+	AltsStatus      string   `json:"alts_status"`
+	GiveawaySniper  bool     `json:"giveaway_sniper"`
+	GiveawayDelay   int      `json:"giveaway_delay"`
+	GiveawayDm      string   `json:"giveaway_dm"`
+	GiveawayDMDelay int      `json:"giveaway_dm_delay"`
+	PrivnoteSniper  bool     `json:"privnote_sniper"`
+	InviteSniper    bool     `json:"invite_sniper"`
+	InviteDelay     struct {
+		Min int `json:"min"`
+		Max int `json:"max"`
+	} `json:"invite_delay"`
+	NitroGiveawaySniper bool `json:"nitro_giveaway_sniper"`
 	Webhook             struct {
 		URL      string `json:"url"`
 		GoodOnly bool   `json:"good_only"`
@@ -49,6 +57,7 @@ type Response struct {
 
 var (
 	paymentSourceID string
+	currentToken    string
 	NitroSniped     int
 	SniperRunning   bool
 	settings        Settings
@@ -61,9 +70,11 @@ var (
 	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	rePrivnote        = regexp.MustCompile("(https://privnote.com/[0-9A-Za-z]+)#([0-9A-Za-z]+)")
 	rePrivnoteData    = regexp.MustCompile(`"data": "(.*)",`)
+	reInviteServer    = regexp.MustCompile(`"name": "(.*)", "splash"`)
 	reGiveaway        = regexp.MustCompile("You won the \\*\\*(.*)\\*\\*")
 	reGiveawayMessage = regexp.MustCompile("<https://discordapp.com/channels/(.*)/(.*)/(.*)>")
 	rePaymentSourceId = regexp.MustCompile(`("id": ")([0-9]+)"`)
+	reInviteLink      = regexp.MustCompile("https://discord.gg/([0-9a-zA-Z]+)")
 	magenta           = color.New(color.FgMagenta)
 	green             = color.New(color.FgGreen)
 	yellow            = color.New(color.FgYellow)
@@ -114,6 +125,61 @@ func contains(array []string, value string) bool {
 	}
 
 	return false
+}
+
+func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
+	strRequestURI := "https://discord.com/api/v8/invites/" + code
+	req := fasthttp.AcquireRequest()
+	req.Header.Set("authorization", s.Token)
+	req.Header.SetMethodBytes([]byte("POST"))
+	req.SetRequestURIBytes([]byte(strRequestURI))
+	res := fasthttp.AcquireResponse()
+
+	if err := fasthttp.Do(req, res); err != nil {
+		panic("handle error")
+	}
+
+	fasthttp.ReleaseRequest(req)
+
+	body := res.Body()
+
+	if !strings.Contains(string(body), "new_member") {
+		return
+	}
+
+	if !reInviteServer.Match(body) {
+		return
+	}
+	var serverName = reInviteServer.FindStringSubmatch(string(body))[1]
+
+	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+	_, _ = green.Print("[+] " + s.State.User.Username + " joined a new server: ")
+	_, _ = yellow.Print(serverName)
+	print(" from " + m.Author.String())
+	guild, err := s.State.Guild(m.GuildID)
+	if err != nil || guild == nil {
+		guild, err = s.Guild(m.GuildID)
+		if err != nil {
+			println()
+			return
+		}
+	}
+
+	channel, err := s.State.Channel(m.ChannelID)
+	if err != nil || guild == nil {
+		channel, err = s.Channel(m.ChannelID)
+		if err != nil {
+			println()
+			return
+		}
+	}
+	_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
+}
+
+func join(code string, s *discordgo.Session, m *discordgo.MessageCreate) func() {
+	return func() {
+		joinServer(code, s, m)
+	}
 }
 
 func webhook(title string, code string, response string, sender string, color string) {
@@ -204,6 +270,7 @@ func timerEnd() {
 }
 
 func run(token string, finished chan bool, index int) {
+	currentToken = token
 	dg, err := discordgo.New(token)
 	if err != nil {
 		fmt.Println("Error creating Discord session for "+token+" ,", err)
@@ -441,11 +508,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 		}
-		time.Sleep(time.Minute)
+		time.Sleep(time.Duration(settings.GiveawayDelay) * time.Second)
 		guild, err := s.State.Guild(m.GuildID)
 		if err != nil || guild == nil {
 			guild, err = s.Guild(m.GuildID)
 			if err != nil {
+				println()
 				return
 			}
 		}
@@ -454,6 +522,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil || guild == nil {
 			channel, err = s.Channel(m.ChannelID)
 			if err != nil {
+				println()
 				return
 			}
 		}
@@ -470,6 +539,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil || guild == nil {
 			guild, err = s.Guild(m.GuildID)
 			if err != nil {
+				println()
 				return
 			}
 		}
@@ -478,6 +548,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil || guild == nil {
 			channel, err = s.Channel(m.ChannelID)
 			if err != nil {
+				println()
 				return
 			}
 		}
@@ -518,7 +589,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if err != nil {
 				return
 			}
-			time.Sleep(time.Second * 9)
+			time.Sleep(time.Second * time.Duration(settings.GiveawayDMDelay))
 
 			_, err = s.ChannelMessageSend(hostChannel.ID, settings.GiveawayDm)
 			if err != nil {
@@ -544,6 +615,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil || guild == nil {
 			guild, err = s.Guild(m.GuildID)
 			if err != nil {
+				println()
 				return
 			}
 		}
@@ -552,6 +624,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil || guild == nil {
 			channel, err = s.Channel(m.ChannelID)
 			if err != nil {
+				println()
 				return
 			}
 		}
@@ -621,5 +694,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			webhook(s.State.User.Username+" Sniped Privnote", clean, "`"+cryptData+"`", guild.Name+" > "+channel.Name, "2948879")
 			_, _ = yellow.Print("[-] Wrote the content of the privnote to privnotes.txt")
 		}
+	} else if reInviteLink.Match([]byte(m.Content)) && settings.InviteSniper {
+
+		if s.Token == settings.Maintoken {
+			return
+		}
+		code := reInviteLink.FindStringSubmatch(m.Content)[1]
+
+		var f = join(code, s, m)
+		n := rand.Intn(settings.InviteDelay.Max - settings.InviteDelay.Min)
+
+		time.AfterFunc(time.Minute*(time.Duration(settings.InviteDelay.Min)+time.Duration(n)), f)
 	}
 }
