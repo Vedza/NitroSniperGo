@@ -740,6 +740,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var f = join(code, s, m)
 		n := rand.Intn(settings.InviteDelay.Max - settings.InviteDelay.Min)
 
-		time.AfterFunc(time.Second*(time.Duration(settings.InviteDelay.Min)+time.Duration(n)), f)
+		time.AfterFunc(time.Minute*(time.Duration(settings.InviteDelay.Min)+time.Duration(n)), f)
 	}
 }
