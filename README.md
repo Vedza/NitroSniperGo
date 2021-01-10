@@ -53,7 +53,7 @@ Edit `settings.json`
     "min": 5, // Minimum delay in minute before joining server
     "max": 10 // Maximum delay in minute before joining server
   },
-  "invite_max" : 1,  // Max Servers joined before cooldown
+  "invite_max" : 10,  // Max Servers joined before cooldown
   "invite_cooldown" : 6, // in Hour
   "webhook": {
     "url": "",
