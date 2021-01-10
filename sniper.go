@@ -167,6 +167,7 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			println()
 			if InviteSniped >= settings.InviteMax {
+				InviteRunning = false
 				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 				_, _ = yellow.Println("[+] Stopping Invite sniping for now")
 				time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
@@ -181,6 +182,7 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil {
 			println()
 			if InviteSniped >= settings.InviteMax {
+				InviteRunning = false
 				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 				_, _ = yellow.Println("[+] Stopping Invite sniping for now")
 				time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
@@ -189,6 +191,7 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 	if InviteSniped >= settings.InviteMax {
+		InviteRunning = false
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = yellow.Println("[+] Stopping Invite sniping for now")
 		time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
