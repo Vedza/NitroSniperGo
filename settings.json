@@ -4,7 +4,7 @@
     ""
   ],
   "nitro_max": 2,
-  "cooldown": 24,
+  "sniper_cooldown": 24,
   "giveaway_sniper": true,
   "main_status": "",
   "alts_status": "invisible",
@@ -18,6 +18,8 @@
     "min": 10,
     "max": 20
   },
+  "invite_max" : 1,
+  "invite_cooldown" : 6,
   "webhook": {
     "url": "",
     "good_only": false

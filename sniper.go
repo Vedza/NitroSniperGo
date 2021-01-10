@@ -28,7 +28,7 @@ type Settings struct {
 	Maintoken       string   `json:"main_token"`
 	AltsTokens      []string `json:"alts_tokens"`
 	NitroMax        int      `json:"nitro_max"`
-	Cooldown        int      `json:"cooldown"`
+	Cooldown        int      `json:"sniper_cooldown"`
 	MainStatus      string   `json:"main_status"`
 	AltsStatus      string   `json:"alts_status"`
 	GiveawaySniper  bool     `json:"giveaway_sniper"`
@@ -41,6 +41,8 @@ type Settings struct {
 		Min int `json:"min"`
 		Max int `json:"max"`
 	} `json:"invite_delay"`
+	InviteMax           int  `json:"invite_max"`
+	inviteCooldown      int  `json:"invite_cooldown"`
 	NitroGiveawaySniper bool `json:"nitro_giveaway_sniper"`
 	Webhook             struct {
 		URL      string `json:"url"`
@@ -58,7 +60,9 @@ var (
 	paymentSourceID string
 	currentToken    string
 	NitroSniped     int
+	InviteSniped    int
 	SniperRunning   bool
+	InviteRunning   bool
 	settings        Settings
 	nbServers       int
 	cache, _        = ristretto.NewCache(&ristretto.Config{
@@ -149,6 +153,8 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 	if !reInviteServer.Match(body) {
 		return
 	}
+
+	InviteSniped++
 	var serverName = reInviteServer.FindStringSubmatch(string(body))[1]
 
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
@@ -160,6 +166,11 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 		guild, err = s.Guild(m.GuildID)
 		if err != nil {
 			println()
+			if InviteSniped >= settings.InviteMax {
+				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+				_, _ = yellow.Println("[+] Stopping Invite sniping for now")
+				time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
+			}
 			return
 		}
 	}
@@ -169,10 +180,19 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 		channel, err = s.Channel(m.ChannelID)
 		if err != nil {
 			println()
-			return
+			if InviteSniped >= settings.InviteMax {
+				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+				_, _ = yellow.Println("[+] Stopping Invite sniping for now")
+				time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
+			}
 		}
 	}
 	_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
+	if InviteSniped >= settings.InviteMax {
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = yellow.Println("[+] Stopping Invite sniping for now")
+		time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
+	}
 }
 
 func join(code string, s *discordgo.Session, m *discordgo.MessageCreate) func() {
@@ -250,12 +270,16 @@ func init() {
 
 	var err = json.Unmarshal([]byte(file), &settings)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse JSON file: %s\n", err)
-		os.Exit(1)
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = red.Println("[x] Failed to parse JSON file: ", err)
+		time.Sleep(4 * time.Second)
+		os.Exit(-1)
 	}
 
 	NitroSniped = 0
+	InviteSniped = 0
 	SniperRunning = true
+	InviteRunning = true
 }
 func timerEnd() {
 	SniperRunning = true
@@ -264,15 +288,28 @@ func timerEnd() {
 	_, _ = green.Println("[+] Starting Nitro sniping")
 }
 
+func inviteTimerEnd() {
+	InviteSniped = 0
+	InviteRunning = true
+	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+	_, _ = green.Println("[+] Starting Nitro sniping")
+}
+
 func run(token string, finished chan bool, index int) {
 	currentToken = token
 	dg, err := discordgo.New(token)
 	if err != nil {
-		fmt.Println("Error creating Discord session for "+token+" ,", err)
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = red.Println("[x] Error creating Discord session for "+token+",", err)
+		time.Sleep(4 * time.Second)
+		os.Exit(-1)
 	} else {
 		err = dg.Open()
 		if err != nil {
-			fmt.Println("Error opening connection,", err)
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = red.Println("[x] Error opening connection for "+token+",", err)
+			time.Sleep(4 * time.Second)
+			os.Exit(-1)
 		} else {
 			nbServers += len(dg.State.Guilds)
 			dg.AddHandler(messageCreate)
@@ -310,14 +347,18 @@ func main() {
 	dg, err := discordgo.New(settings.Maintoken)
 
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = red.Println("[x] Error creating Discord session for "+settings.Maintoken+",", err)
+		time.Sleep(4 * time.Second)
+		os.Exit(-1)
 	}
 
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("Error opening connection,", err)
-		return
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = red.Println("[x] Error opening connection for "+settings.Maintoken+",", err)
+		time.Sleep(4 * time.Second)
+		os.Exit(-1)
 	}
 
 	dg.AddHandler(messageCreate)
@@ -387,7 +428,7 @@ func checkCode(bodyString string, code string, sender string) {
 		_, _ = green.Println("[+] " + response.Message)
 		webhook("Nitro Sniped", code, response.Message, sender, "2948879")
 		NitroSniped++
-		if NitroSniped == settings.NitroMax {
+		if NitroSniped >= settings.NitroMax {
 			SniperRunning = false
 			time.AfterFunc(time.Hour*time.Duration(settings.Cooldown), timerEnd)
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
@@ -462,7 +503,7 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	fasthttp.ReleaseResponse(res)
 
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-	_, _ = green.Print("[-] Sniped code: ")
+	_, _ = green.Print("[-] " + s.State.User.Username + " sniped code: ")
 	_, _ = red.Print(code[2])
 	guild, err := s.State.Guild(m.GuildID)
 	if err != nil || guild == nil {
@@ -522,7 +563,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = yellow.Print("[-] Enter Giveaway ")
+		_, _ = yellow.Print("[-] " + s.State.User.Username + " entered a Giveaway ")
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		_ = s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
 
@@ -593,7 +634,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			host, _ := s.User(giveawayHost[1])
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = green.Print("[+] Sent DM to host: ")
+			_, _ = green.Print("[+] " + s.State.User.Username + " sent DM to host: ")
 			_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
 		}
 	} else if rePrivnote.Match([]byte(m.Content)) && settings.PrivnoteSniper {
@@ -602,7 +643,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var password = link[2]
 
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[-] Sniped PrivNote: " + rePrivnote.FindStringSubmatch(m.Content)[0])
+		_, _ = green.Print("[-] " + s.State.User.Username + " sniped PrivNote: " + rePrivnote.FindStringSubmatch(m.Content)[0])
 
 		print(" from " + m.Author.String())
 
@@ -691,7 +732,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	} else if reInviteLink.Match([]byte(m.Content)) && settings.InviteSniper {
 
-		if s.Token == settings.Maintoken {
+		if s.Token == settings.Maintoken || !InviteRunning {
 			return
 		}
 		code := reInviteLink.FindStringSubmatch(m.Content)[1]
@@ -699,6 +740,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		var f = join(code, s, m)
 		n := rand.Intn(settings.InviteDelay.Max - settings.InviteDelay.Min)
 
-		time.AfterFunc(time.Minute*(time.Duration(settings.InviteDelay.Min)+time.Duration(n)), f)
+		time.AfterFunc(time.Second*(time.Duration(settings.InviteDelay.Min)+time.Duration(n)), f)
 	}
 }
