@@ -11,7 +11,6 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -267,15 +266,9 @@ func getPaymentSourceId() {
 	}
 }
 func init() {
-	file, err := ioutil.ReadFile("settings.json")
-	if err != nil {
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = red.Println("[x] Failed read file: ", err)
-		time.Sleep(4 * time.Second)
-		os.Exit(-1)
-	}
+	var file = os.Getenv("SETTINGS")
 
-	err = json.Unmarshal(file, &settings)
+	var err = json.Unmarshal([]byte(file), &settings)
 	if err != nil {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = red.Println("[x] Failed to parse JSON file: ", err)
