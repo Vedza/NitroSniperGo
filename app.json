@@ -11,37 +11,7 @@
   "env": {
     "SETTINGS": {
       "description": "Settings",
-      "value": "{
-  "main_token": "",
-  "alts_tokens": [
-    ""
-  ],
-  "nitro_max": 2,
-  "sniper_cooldown": 24,
-  "giveaway_sniper": true,
-  "main_status": "",
-  "alts_status": "invisible",
-  "nitro_giveaway_sniper": false,
-  "giveaway_delay": 2,
-  "giveaway_dm": "",
-  "giveaway_dm_delay": 10,
-  "privnote_sniper": true,
-  "invite_sniper": true,
-  "invite_delay": {
-    "min": 10,
-    "max": 20
-  },
-  "invite_max" : 1,
-  "invite_cooldown" : 6,
-  "webhook": {
-    "url": "",
-    "good_only": false
-  },
-  "blacklist_servers": [
-    ""
-  ]
-}
-"
+      "value": "{\n  \"main_token\": \"\",\n  \"alts_tokens\": [\n    \"\"\n  ],\n  \"nitro_max\": 2,\n  \"sniper_cooldown\": 24,\n  \"giveaway_sniper\": true,\n  \"main_status\": \"\",\n  \"alts_status\": \"invisible\",\n  \"nitro_giveaway_sniper\": false,\n  \"giveaway_delay\": 2,\n  \"giveaway_dm\": \"\",\n  \"giveaway_dm_delay\": 10,\n  \"privnote_sniper\": true,\n  \"invite_sniper\": true,\n  \"invite_delay\": {\n    \"min\": 10,\n    \"max\": 20\n  },\n  \"invite_max\" : 1,\n  \"invite_cooldown\" : 6,\n  \"webhook\": {\n    \"url\": \"\",\n    \"good_only\": false\n  },\n  \"blacklist_servers\": [\n    \"\"\n  ]\n}\n"
     }
   }
 }
