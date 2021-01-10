@@ -36,7 +36,7 @@ Edit `settings.json`
     "",  // Token2
          // ...
   ],
-  "nitro_max": 2, // Maxi Nitro before cooldown
+  "nitro_max": 2, // Max Nitro before cooldown
   "cooldown": 24, // in Hour
   "main_status": "", // online, offline, idle, dnd, invisible
   "alts_status": "", // online, offline, idle, dnd, invisible
@@ -51,6 +51,8 @@ Edit `settings.json`
     "min": 5, // Minimum delay in minute before joining server
     "max": 10 // Maximum delay in minute before joining server
   },
+  "invite_max" : 1,  // Max Servers joined before cooldown
+  "invite_cooldown" : 6, // in Hour
   "webhook": {
     "url": "",
     "good_only": true // Will trigger webhook only when you applied a Nitro code or won a giveaway
