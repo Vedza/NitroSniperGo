@@ -17,7 +17,7 @@
 .idea/NitroSniperGo.iml
 .idea/vcs.xml
 .idea/workspace.xml
-NitroSniperGo_build_mac.zip
+NitroSniperGo_build_*
 NitroSniperGo_build_mac/NitroSniperGo
 NitroSniperGo_build_mac/token.json
 NitroSniperGo_build_win64.zip

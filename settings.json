@@ -10,10 +10,10 @@
   "main_status": "",
   "alts_status": "invisible",
   "nitro_giveaway_sniper": false,
-  "giveaway_delay": 2,
-  "giveaway_dm": "",
+  "giveaway_delay": 30,
+  "giveaway_dm": "Hey, I won a giveway !",
   "giveaway_dm_delay": 10,
-  "privnote_sniper": true,
+  "privnote_sniper": false,
   "invite_sniper": true,
   "invite_delay": {
     "min": 10,
