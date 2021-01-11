@@ -26,6 +26,7 @@ import (
 
 type Settings struct {
 	Maintoken       string   `json:"main_token"`
+	MainSniper      bool     `json:"main_sniper"`
 	AltsTokens      []string `json:"alts_tokens"`
 	NitroMax        int      `json:"nitro_max"`
 	Cooldown        int      `json:"sniper_cooldown"`
@@ -340,44 +341,6 @@ func deleteEmpty(s []string) []string {
 }
 
 func main() {
-	finished := make(chan bool)
-
-	settings.AltsTokens = deleteEmpty(settings.AltsTokens)
-
-	if len(settings.AltsTokens) != 0 {
-		for i, token := range settings.AltsTokens {
-			go run(token, finished, i)
-		}
-	}
-
-	dg, err := discordgo.New(settings.Maintoken)
-
-	if err != nil {
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = red.Println("[x] Error creating Discord session for "+settings.Maintoken+",", err)
-		time.Sleep(4 * time.Second)
-		os.Exit(-1)
-	}
-
-	err = dg.Open()
-	if err != nil {
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = red.Println("[x] Error opening connection for "+settings.Maintoken+",", err)
-		time.Sleep(4 * time.Second)
-		os.Exit(-1)
-	}
-
-	dg.AddHandler(messageCreate)
-
-	if settings.MainStatus != "" {
-		_, _ = dg.UserUpdateStatus(discordgo.Status(settings.MainStatus))
-	}
-
-	if len(settings.AltsTokens) != 0 {
-		<-finished
-	}
-
-	nbServers += len(dg.State.Guilds)
 	c := exec.Command("clear")
 
 	c.Stdout = os.Stdout
@@ -395,6 +358,57 @@ func main() {
 ░                   ░                           ░
 	`)
 
+	if settings.Maintoken == "" {
+		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+		_, _ = red.Println("[x] You must put your token in settings.json")
+		time.Sleep(4 * time.Second)
+		os.Exit(-1)
+	}
+
+	finished := make(chan bool)
+
+	settings.AltsTokens = deleteEmpty(settings.AltsTokens)
+
+	if len(settings.AltsTokens) != 0 {
+		for i, token := range settings.AltsTokens {
+			go run(token, finished, i)
+		}
+	}
+
+	var dg *discordgo.Session
+	var err error
+
+	if settings.MainSniper {
+		dg, err = discordgo.New(settings.Maintoken)
+
+		if err != nil {
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = red.Println("[x] Error creating Discord session for "+settings.Maintoken+",", err)
+			time.Sleep(4 * time.Second)
+			os.Exit(-1)
+		}
+
+		err = dg.Open()
+		if err != nil {
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = red.Println("[x] Error opening connection for "+settings.Maintoken+",", err)
+			time.Sleep(4 * time.Second)
+			os.Exit(-1)
+		}
+
+		dg.AddHandler(messageCreate)
+
+		if settings.MainStatus != "" {
+			_, _ = dg.UserUpdateStatus(discordgo.Status(settings.MainStatus))
+		}
+
+		nbServers += len(dg.State.Guilds)
+	}
+
+	if len(settings.AltsTokens) != 0 {
+		<-finished
+	}
+
 	getPaymentSourceId()
 
 	t := time.Now()
@@ -406,8 +420,11 @@ func main() {
 	} else if settings.PrivnoteSniper == true {
 		_, _ = cyan.Print(" and Privnote")
 	}
-	_, _ = cyan.Print(" for " + dg.State.User.Username + " on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
-
+	if settings.MainSniper {
+		_, _ = cyan.Print(" for " + dg.State.User.Username + " on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
+	} else {
+		_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)) + " accounts 🔫\n\n")
+	}
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Sniper is ready")
 
@@ -415,7 +432,9 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
-	_ = dg.Close()
+	if settings.MainSniper {
+		_ = dg.Close()
+	}
 }
 
 func checkCode(bodyString string, code string, sender string) {
