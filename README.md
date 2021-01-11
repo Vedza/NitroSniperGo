@@ -33,14 +33,13 @@ Discord Nitro sniper and Giveaway joiner in Go.
 Edit `settings.json`
 ``` json5
 {
-  "main_token": "", // Your token here
+  "main_token": "Nz...", // Your main token here
+  "main_sniper" : true, // Enable or not Nitro sniper on main account (It will only claim code from alts)
   "alts_tokens": [ // Alts token
     "",  // Token1
-    "",  // Token2
-         // ...
+    ""  // Token2
   ],
   "nitro_max": 2, // Max Nitro before cooldown
-  "main_sniper" : true, // Enable or not Nitro sniper on main account (It will only claim code from alts)
   "cooldown": 24, // in Hour
   "main_status": "", // online, offline, idle, dnd, invisible
   "alts_status": "", // online, offline, idle, dnd, invisible
