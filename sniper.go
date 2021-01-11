@@ -132,6 +132,9 @@ func contains(array []string, value string) bool {
 }
 
 func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
+	if !InviteRunning {
+		return
+	}
 	strRequestURI := "https://discord.com/api/v8/invites/" + code
 	req := fasthttp.AcquireRequest()
 	req.Header.Set("authorization", s.Token)
