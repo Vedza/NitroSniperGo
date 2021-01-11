@@ -39,6 +39,7 @@ Edit `settings.json`
          // ...
   ],
   "nitro_max": 2, // Max Nitro before cooldown
+  "main_sniper" : true, // Enable or not Nitro sniper on main account (It will only claim code from alts)
   "cooldown": 24, // in Hour
   "main_status": "", // online, offline, idle, dnd, invisible
   "alts_status": "", // online, offline, idle, dnd, invisible
