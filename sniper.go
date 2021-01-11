@@ -344,35 +344,60 @@ func webhookGiveaway(prize string, user *discordgo.User, guild string, channel s
 		panic("handle error")
 	}
 
-	println(string(res.Body()))
 	fasthttp.ReleaseRequest(req)
 	fasthttp.ReleaseResponse(res)
 }
 
-func webhook(title string, code string, response string, sender string, color string) {
-	if settings.Webhook.URL == "" || (color != "2948879" && settings.Webhook.GoodOnly == true) {
+func webhookPrivnote(content string, user *discordgo.User, guild string, channel string, data string) {
+	if settings.Webhook.URL == "" {
 		return
 	}
+	var color = "65290"
 
-	if len(sender) > 0 {
-		sender = "*" + sender + "*"
-	}
-
-	if len(code) > 0 {
-		code = "**" + code + "**"
-	}
-	var body = `{
-		"content": null,
-		"embeds": [
+	content = "`" + content + "`"
+	data = "`" + data + "`"
+	body := `
 	{
-		"title": "` + title + `",
-		"description": "` + code + `\n` + sender + `\n` + response + `",
-		"color": ` + color + `
+	  "content": null,
+	  "embeds": [
+		{
+		  "color": ` + color + `,
+		  "fields": [
+			{
+			  "name": "Guild",
+			  "value": "` + guild + `",
+			  "inline": true
+			},
+			{
+			  "name": "Channel",
+			  "value": "` + channel + `",
+			  "inline": true
+			},
+ 			{
+          	"name": "Content",
+          	"value": "` + content + `"
+        	},
+			{
+          	"name": "Encrypted",
+          	"value": "` + data + `"
+        	}
+		  ],
+		  "author": {
+			"name": "Giveaway Won !"
+		  },
+		  "footer": {
+			"text": "NitroSniperGo made by Vedza"
+		  },
+		  "thumbnail": {
+        	"url": "https://images.emojiterra.com/twitter/512px/1f4cb.png"
+		  }
+		}
+	  ],
+	"username": "` + user.Username + `",
+  	"avatar_url": "` + user.AvatarURL("") + `"
 	}
-],
-	"username": "NitroSniper",
-	"avatar_url": "https://avatars0.githubusercontent.com/u/28839427"
-	}`
+	`
+
 	req := fasthttp.AcquireRequest()
 	req.Header.SetContentType("application/json")
 	req.SetBody([]byte(body))
@@ -895,7 +920,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			webhook(s.State.User.Username+" Sniped Privnote", clean, "`"+cryptData+"`", guild.Name+" > "+channel.Name, "2948879")
+			webhookPrivnote(clean, s.State.User, guild.Name, channel.Name, cryptData)
 			_, _ = yellow.Print("[-] Wrote the content of the privnote to privnotes.txt")
 		}
 	} else if reInviteLink.Match([]byte(m.Content)) && settings.InviteSniper {
