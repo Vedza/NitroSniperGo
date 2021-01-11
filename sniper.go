@@ -252,13 +252,79 @@ func webhookNitro(code string, user *discordgo.User, guild string, channel strin
 			}
 		  ],
 		  "author": {
-			"name": "Nitro Sniped!"
+			"name": "Nitro Sniped !"
 		  },
 		  "footer": {
 			"text": "NitroSniperGo made by Vedza"
 		  },
 		  "thumbnail": {
 			"url": "` + image + `"
+		  }
+		}
+	  ],
+	"username": "` + user.Username + `",
+  	"avatar_url": "` + user.AvatarURL("") + `"
+	}
+	`
+
+	req := fasthttp.AcquireRequest()
+	req.Header.SetContentType("application/json")
+	req.SetBody([]byte(body))
+	req.Header.SetMethodBytes([]byte("POST"))
+	req.SetRequestURIBytes([]byte(settings.Webhook.URL))
+	res := fasthttp.AcquireResponse()
+
+	if err := fasthttp.Do(req, res); err != nil {
+		panic("handle error")
+	}
+
+	println(string(res.Body()))
+	fasthttp.ReleaseRequest(req)
+	fasthttp.ReleaseResponse(res)
+}
+
+func webhookGiveaway(prize string, user *discordgo.User, guild string, channel string) {
+	if settings.Webhook.URL == "" {
+		return
+	}
+	var color = "65290"
+
+	if prize != "" {
+		prize = `
+			{
+			  "name": "Prize",
+			  "value": "` + prize + `",
+			  "inline": false
+			},`
+	}
+
+	body := `
+	{
+	  "content": null,
+	  "embeds": [
+		{
+		  "color": ` + color + `,
+		  "fields": [
+			` + prize + `
+			{
+			  "name": "Guild",
+			  "value": "` + guild + `",
+			  "inline": true
+			},
+			{
+			  "name": "Channel",
+			  "value": "` + channel + `",
+			  "inline": true
+			}
+		  ],
+		  "author": {
+			"name": "Giveaway Won !"
+		  },
+		  "footer": {
+			"text": "NitroSniperGo made by Vedza"
+		  },
+		  "thumbnail": {
+        	"url": "https://media.hearthpwn.com/attachments/96/923/tadapopper.png"
 		  }
 		}
 	  ],
@@ -697,9 +763,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if len(won) > 1 {
 				_, _ = green.Print(": ")
 				_, _ = cyan.Println(won[1])
-				webhook(s.State.User.Username+" Won Giveaway", won[1], "", guild.Name+" > "+channel.Name, "2948879")
+				webhookGiveaway(won[1], s.State.User, guild.Name, guild.Name)
 			}
-			webhook(s.State.User.Username+" Won Giveaway", "", "", guild.Name+" > "+channel.Name, "2948879")
+			webhookGiveaway("", s.State.User, guild.Name, guild.Name)
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 			return
 		}
@@ -710,10 +776,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 		if len(won) > 1 {
 			_, _ = green.Print(": ")
-			webhook(s.State.User.Username+" Won Giveaway", won[1], "", guild.Name+" > "+channel.Name, "2948879")
+			webhookGiveaway(won[1], s.State.User, guild.Name, guild.Name)
 			_, _ = cyan.Print(won[1])
 		} else {
-			webhook(s.State.User.Username+" Won Giveaway", "", "", guild.Name+" > "+channel.Name, "2948879")
+			webhookGiveaway("", s.State.User, guild.Name, guild.Name)
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
