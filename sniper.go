@@ -383,7 +383,7 @@ func webhookPrivnote(content string, user *discordgo.User, guild string, channel
         	}
 		  ],
 		  "author": {
-			"name": "Giveaway Won !"
+			"name": "Privnote Sniped !"
 		  },
 		  "footer": {
 			"text": "NitroSniperGo made by Vedza"
