@@ -804,9 +804,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if len(won) > 1 {
 				_, _ = green.Print(": ")
 				_, _ = cyan.Println(won[1])
-				webhookGiveaway(won[1], s.State.User, guild.Name, guild.Name)
+				webhookGiveaway(won[1], s.State.User, guild.Name, channel.Name)
 			}
-			webhookGiveaway("", s.State.User, guild.Name, guild.Name)
+			webhookGiveaway("", s.State.User, guild.Name, channel.Name)
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 			return
 		}
@@ -817,10 +817,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 		if len(won) > 1 {
 			_, _ = green.Print(": ")
-			webhookGiveaway(won[1], s.State.User, guild.Name, guild.Name)
+			webhookGiveaway(won[1], s.State.User, guild.Name, channel.Name)
 			_, _ = cyan.Print(won[1])
 		} else {
-			webhookGiveaway("", s.State.User, guild.Name, guild.Name)
+			webhookGiveaway("", s.State.User, guild.Name, channel.Name)
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
