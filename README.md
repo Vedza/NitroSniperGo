@@ -18,7 +18,8 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Optional main account sniper to only claim code from alts
 * Cooldown for # hour(s) after redeeming # nitro code(s)
 * Duplicate code detection
-* Optional Giveaway joiner and only Nitro Giveaway joiner
+* Optional Giveaway joiner
+* Words blacklist and whitelist to join or not giveaway
 * DM host with custom message if giveaway won
 * Optional Privnote sniper
 * Optional custom status
