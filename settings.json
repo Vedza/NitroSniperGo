@@ -1,31 +1,51 @@
 {
-  "main_token": "",
-  "main_sniper" : true,
-  "alts_tokens": [
-    ""
-  ],
-  "nitro_max": 2,
-  "sniper_cooldown": 24,
-  "giveaway_sniper": true,
-  "main_status": "",
-  "alts_status": "invisible",
-  "nitro_giveaway_sniper": false,
-  "giveaway_delay": 30,
-  "giveaway_dm": "Hey, I won a giveaway !",
-  "giveaway_dm_delay": 10,
-  "privnote_sniper": false,
-  "invite_sniper": true,
-  "invite_delay": {
-    "min": 10,
-    "max": 20
+  "tokens": {
+    "main": "",
+    "alts": [
+      ""
+    ]
   },
-  "invite_max" : 10,
-  "invite_cooldown" : 6,
+  "status": {
+    "main": "",
+    "alts": "invisible"
+  },
+  "nitro": {
+    "max": 2,
+    "cooldown": 24,
+    "main_sniper": true
+  },
+  "giveaway": {
+    "enable": true,
+    "delay": 5,
+    "dm": "Hey, I won a giveaway !",
+    "dm_delay": 10,
+    "blacklist_words": [
+      "black",
+      "test",
+      "ban"
+    ],
+    "whitelist_words": [
+      "white",
+      "nitro"
+    ],
+    "blacklist_servers": [
+      ""
+    ]
+  },
+  "invite": {
+    "enable": true,
+    "delay": {
+      "min": 10,
+      "max": 20
+    },
+    "max": 10,
+    "cooldown": 6
+  },
+  "privnote": {
+    "enable": false
+  },
   "webhook": {
     "url": "",
     "good_only": false
-  },
-  "blacklist_servers": [
-    ""
-  ]
+  }
 }
