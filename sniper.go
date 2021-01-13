@@ -26,31 +26,43 @@ import (
 )
 
 type Settings struct {
-	Maintoken       string   `json:"main_token"`
-	MainSniper      bool     `json:"main_sniper"`
-	AltsTokens      []string `json:"alts_tokens"`
-	NitroMax        int      `json:"nitro_max"`
-	Cooldown        int      `json:"sniper_cooldown"`
-	MainStatus      string   `json:"main_status"`
-	AltsStatus      string   `json:"alts_status"`
-	GiveawaySniper  bool     `json:"giveaway_sniper"`
-	GiveawayDelay   int      `json:"giveaway_delay"`
-	GiveawayDm      string   `json:"giveaway_dm"`
-	GiveawayDMDelay int      `json:"giveaway_dm_delay"`
-	PrivnoteSniper  bool     `json:"privnote_sniper"`
-	InviteSniper    bool     `json:"invite_sniper"`
-	InviteDelay     struct {
-		Min int `json:"min"`
-		Max int `json:"max"`
-	} `json:"invite_delay"`
-	InviteMax           int  `json:"invite_max"`
-	inviteCooldown      int  `json:"invite_cooldown"`
-	NitroGiveawaySniper bool `json:"nitro_giveaway_sniper"`
-	Webhook             struct {
+	Tokens struct {
+		Main string   `json:"main"`
+		Alts []string `json:"alts"`
+	} `json:"tokens"`
+	Status struct {
+		Main string `json:"main"`
+		Alts string `json:"alts"`
+	} `json:"status"`
+	Nitro struct {
+		Max        int  `json:"max"`
+		Cooldown   int  `json:"cooldown"`
+		MainSniper bool `json:"main_sniper"`
+	} `json:"nitro"`
+	Giveaway struct {
+		Enable           bool     `json:"enable"`
+		Delay            int      `json:"delay"`
+		DM               string   `json:"dm"`
+		DMDelay          int      `json:"dm_delay"`
+		BlacklistWords   []string `json:"blacklist_words"`
+		BlacklistServers []string `json:"blacklist_servers"`
+	} `json:"giveaway"`
+	Invite struct {
+		Enable bool `json:"enable"`
+		Delay  struct {
+			Min int `json:"min"`
+			Max int `json:"max"`
+		} `json:"invite_delay"`
+		InviteMax int `json:"invite_max"`
+		Cooldown  int `json:"cooldown"`
+	} `json:"invite"`
+	Privnote struct {
+		Enable bool `json:"enable"`
+	} `json:"privnte"`
+	Webhook struct {
 		URL      string `json:"url"`
 		GoodOnly bool   `json:"good_only"`
 	} `json:"webhook"`
-	BlacklistServers []string `json:"blacklist_servers"`
 }
 
 type Response struct {
@@ -171,11 +183,11 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 		guild, err = s.Guild(m.GuildID)
 		if err != nil {
 			println()
-			if InviteSniped >= settings.InviteMax {
+			if InviteSniped >= settings.Invite.InviteMax {
 				InviteRunning = false
 				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 				_, _ = yellow.Println("[+] Stopping Invite sniping for now")
-				time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
+				time.AfterFunc(time.Hour*time.Duration(settings.Invite.Cooldown), inviteTimerEnd)
 			}
 			return
 		}
@@ -186,20 +198,20 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 		channel, err = s.Channel(m.ChannelID)
 		if err != nil {
 			println()
-			if InviteSniped >= settings.InviteMax {
+			if InviteSniped >= settings.Invite.InviteMax {
 				InviteRunning = false
 				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 				_, _ = yellow.Println("[+] Stopping Invite sniping for now")
-				time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
+				time.AfterFunc(time.Hour*time.Duration(settings.Invite.Cooldown), inviteTimerEnd)
 			}
 		}
 	}
 	_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-	if InviteSniped >= settings.InviteMax {
+	if InviteSniped >= settings.Invite.InviteMax {
 		InviteRunning = false
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = yellow.Println("[+] Stopping Invite sniping for now")
-		time.AfterFunc(time.Hour*time.Duration(settings.inviteCooldown), inviteTimerEnd)
+		time.AfterFunc(time.Hour*time.Duration(settings.Invite.Cooldown), inviteTimerEnd)
 	}
 }
 
@@ -416,7 +428,7 @@ func webhookPrivnote(content string, user *discordgo.User, guild string, channel
 func getPaymentSourceId() {
 	var strRequestURI = []byte("https://discord.com/api/v8/users/@me/billing/payment-sources")
 	req := fasthttp.AcquireRequest()
-	req.Header.Set("authorization", settings.Maintoken)
+	req.Header.Set("authorization", settings.Tokens.Main)
 	req.Header.SetMethodBytes([]byte("GET"))
 	req.SetRequestURIBytes(strRequestURI)
 	res := fasthttp.AcquireResponse()
@@ -492,12 +504,12 @@ func run(token string, finished chan bool, index int) {
 		} else {
 			nbServers += len(dg.State.Guilds)
 			dg.AddHandler(messageCreate)
-			if settings.AltsStatus != "" {
-				_, _ = dg.UserUpdateStatus(discordgo.Status(settings.AltsStatus))
+			if settings.Status.Alts != "" {
+				_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Alts))
 			}
 		}
 	}
-	if index == len(settings.AltsTokens)-1 {
+	if index == len(settings.Tokens.Alts)-1 {
 		finished <- true
 	}
 }
@@ -530,7 +542,7 @@ func main() {
 ░                   ░                           ░
 	`)
 
-	if settings.Maintoken == "" {
+	if settings.Tokens.Main == "" {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = red.Println("[x] You must put your token in settings.json")
 		time.Sleep(4 * time.Second)
@@ -539,10 +551,10 @@ func main() {
 
 	finished := make(chan bool)
 
-	settings.AltsTokens = deleteEmpty(settings.AltsTokens)
+	settings.Tokens.Alts = deleteEmpty(settings.Tokens.Alts)
 
-	if len(settings.AltsTokens) != 0 {
-		for i, token := range settings.AltsTokens {
+	if len(settings.Tokens.Alts) != 0 {
+		for i, token := range settings.Tokens.Alts {
 			go run(token, finished, i)
 		}
 	}
@@ -550,12 +562,12 @@ func main() {
 	var dg *discordgo.Session
 	var err error
 
-	if settings.MainSniper {
-		dg, err = discordgo.New(settings.Maintoken)
+	if settings.Nitro.MainSniper {
+		dg, err = discordgo.New(settings.Tokens.Main)
 
 		if err != nil {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = red.Println("[x] Error creating Discord session for "+settings.Maintoken+",", err)
+			_, _ = red.Println("[x] Error creating Discord session for "+settings.Tokens.Main+",", err)
 			time.Sleep(4 * time.Second)
 			os.Exit(-1)
 		}
@@ -563,21 +575,21 @@ func main() {
 		err = dg.Open()
 		if err != nil {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = red.Println("[x] Error opening connection for "+settings.Maintoken+",", err)
+			_, _ = red.Println("[x] Error opening connection for "+settings.Tokens.Main+",", err)
 			time.Sleep(4 * time.Second)
 			os.Exit(-1)
 		}
 
 		dg.AddHandler(messageCreate)
 
-		if settings.MainStatus != "" {
-			_, _ = dg.UserUpdateStatus(discordgo.Status(settings.MainStatus))
+		if settings.Status.Main != "" {
+			_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
 		}
 
 		nbServers += len(dg.State.Guilds)
 	}
 
-	if len(settings.AltsTokens) != 0 {
+	if len(settings.Tokens.Alts) != 0 {
 		<-finished
 	}
 
@@ -585,17 +597,17 @@ func main() {
 
 	t := time.Now()
 	_, _ = cyan.Print("Sniping Discord Nitro")
-	if settings.GiveawaySniper == true && settings.PrivnoteSniper == false {
+	if settings.Giveaway.Enable == true && settings.Privnote.Enable == false {
 		_, _ = cyan.Print(" and Giveaway")
-	} else if settings.GiveawaySniper == true && settings.PrivnoteSniper == true {
+	} else if settings.Giveaway.Enable == true && settings.Privnote.Enable == true {
 		_, _ = cyan.Print(", Giveaway and Privnote")
-	} else if settings.PrivnoteSniper == true {
+	} else if settings.Privnote.Enable == true {
 		_, _ = cyan.Print(" and Privnote")
 	}
-	if settings.MainSniper {
-		_, _ = cyan.Print(" for " + dg.State.User.Username + " on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)+1) + " accounts 🔫\n\n")
+	if settings.Nitro.MainSniper {
+		_, _ = cyan.Print(" for " + dg.State.User.Username + " on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.Tokens.Alts)+1) + " accounts 🔫\n\n")
 	} else {
-		_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.AltsTokens)) + " accounts 🔫\n\n")
+		_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.Tokens.Alts)) + " accounts 🔫\n\n")
 	}
 	_, _ = magenta.Print(t.Format("15:04:05 "))
 	fmt.Println("[+] Sniper is ready")
@@ -604,7 +616,7 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
-	if settings.MainSniper {
+	if settings.Nitro.MainSniper {
 		_ = dg.Close()
 	}
 }
@@ -625,9 +637,9 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 		_, _ = green.Println("[+] " + response.Message)
 		webhookNitro(code, user, guild, channel, 1, response.Message)
 		NitroSniped++
-		if NitroSniped >= settings.NitroMax {
+		if NitroSniped >= settings.Nitro.Max {
 			SniperRunning = false
-			time.AfterFunc(time.Hour*time.Duration(settings.Cooldown), timerEnd)
+			time.AfterFunc(time.Hour*time.Duration(settings.Nitro.Cooldown), timerEnd)
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = yellow.Println("[+] Stopping Nitro sniping for now")
 		}
@@ -674,9 +686,9 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	var strRequestURI = []byte("https://discordapp.com/api/v8/entitlements/gift-codes/" + code[2] + "/redeem")
 	req := fasthttp.AcquireRequest()
 	req.Header.SetContentType("application/json")
-	req.Header.Set("authorization", settings.Maintoken)
+	req.Header.Set("authorization", settings.Tokens.Main)
 	var channelId = "null"
-	if s.Token == settings.Maintoken {
+	if s.Token == settings.Tokens.Main {
 		channelId = m.ChannelID
 	}
 	req.SetBody([]byte(`{"channel_id":` + channelId + `,"payment_source_id": ` + paymentSourceID + `}`))
@@ -727,8 +739,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if re.Match([]byte(m.Content)) && SniperRunning {
 		checkGiftLink(s, m, m.Content, false)
-	} else if settings.GiveawaySniper && !contains(settings.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
-		if settings.NitroGiveawaySniper {
+	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
+		if len(settings.Giveaway.BlacklistWords) > 0 {
 			if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
 				if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {
 					return
@@ -737,7 +749,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 		}
-		time.Sleep(time.Duration(settings.GiveawayDelay) * time.Second)
+		time.Sleep(time.Duration(settings.Giveaway.Delay) * time.Second)
 		guild, err := s.State.Guild(m.GuildID)
 		if err != nil || guild == nil {
 			guild, err = s.Guild(m.GuildID)
@@ -808,7 +820,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
-		if settings.GiveawayDm != "" {
+		if settings.Giveaway.DM != "" {
 			giveawayHost := reGiveawayHost.FindStringSubmatch(messages[0].Embeds[0].Description)
 			if len(giveawayHost) < 2 {
 				return
@@ -818,9 +830,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if err != nil {
 				return
 			}
-			time.Sleep(time.Second * time.Duration(settings.GiveawayDMDelay))
+			time.Sleep(time.Second * time.Duration(settings.Giveaway.DMDelay))
 
-			_, err = s.ChannelMessageSend(hostChannel.ID, settings.GiveawayDm)
+			_, err = s.ChannelMessageSend(hostChannel.ID, settings.Giveaway.DM)
 			if err != nil {
 				return
 			}
@@ -830,7 +842,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			_, _ = green.Print("[+] " + s.State.User.Username + " sent DM to host: ")
 			_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
 		}
-	} else if rePrivnote.Match([]byte(m.Content)) && settings.PrivnoteSniper {
+	} else if rePrivnote.Match([]byte(m.Content)) && settings.Privnote.Enable {
 		var link = rePrivnote.FindStringSubmatch(m.Content)
 		var strRequestURI = link[1]
 		var password = link[2]
@@ -923,16 +935,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			webhookPrivnote(clean, s.State.User, guild.Name, channel.Name, cryptData)
 			_, _ = yellow.Print("[-] Wrote the content of the privnote to privnotes.txt")
 		}
-	} else if reInviteLink.Match([]byte(m.Content)) && settings.InviteSniper {
+	} else if reInviteLink.Match([]byte(m.Content)) && settings.Invite.Enable {
 
-		if s.Token == settings.Maintoken || !InviteRunning {
+		if s.Token == settings.Tokens.Main || !InviteRunning {
 			return
 		}
 		code := reInviteLink.FindStringSubmatch(m.Content)[1]
 
 		var f = join(code, s, m)
-		n := rand.Intn(settings.InviteDelay.Max - settings.InviteDelay.Min)
+		n := rand.Intn(settings.Invite.Delay.Max - settings.Invite.Delay.Min)
 
-		time.AfterFunc(time.Minute*(time.Duration(settings.InviteDelay.Min)+time.Duration(n)), f)
+		time.AfterFunc(time.Minute*(time.Duration(settings.Invite.Delay.Min)+time.Duration(n)), f)
 	}
 }
