@@ -53,7 +53,7 @@ type Settings struct {
 		Delay  struct {
 			Min int `json:"min"`
 			Max int `json:"max"`
-		} `json:"invite_delay"`
+		} `json:"delay"`
 		InviteMax int `json:"invite_max"`
 		Cooldown  int `json:"cooldown"`
 	} `json:"invite"`
@@ -954,6 +954,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		code := reInviteLink.FindStringSubmatch(m.Content)[1]
 
 		var f = join(code, s, m)
+
+		println()
 		n := rand.Intn(settings.Invite.Delay.Max - settings.Invite.Delay.Min)
 
 		time.AfterFunc(time.Minute*(time.Duration(settings.Invite.Delay.Min)+time.Duration(n)), f)
