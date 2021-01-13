@@ -56,12 +56,10 @@ Edit `settings.json`
     "dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
     "dm_delay": 10, // Delay in second before sending DM
     "blacklist_words": [ // Don't join giveaways with these words
-      "black",
       "test",
       "ban"
     ],
     "whitelist_words": [ // Only join giveaways with these words
-      "white",
       "nitro"
     ],
     "blacklist_servers": [ // IDs of servers you don't want the giveaway joiner to work on
