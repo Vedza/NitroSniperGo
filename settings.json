@@ -20,6 +20,7 @@
     "dm": "Hey, I won a giveaway !",
     "dm_delay": 10,
     "blacklist_words": [
+      "bot",
       "test",
       "ban"
     ],
