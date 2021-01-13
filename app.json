@@ -11,7 +11,7 @@
   "env": {
     "SETTINGS": {
       "description": "Settings",
-      "value": "{\n  \"main_token\": \"\",\n  \"main_sniper\" : true,\n  \"alts_tokens\": [\n    \"\"\n  ],\n  \"nitro_max\": 2,\n  \"sniper_cooldown\": 24,\n  \"giveaway_sniper\": true,\n  \"main_status\": \"\",\n  \"alts_status\": \"invisible\",\n  \"nitro_giveaway_sniper\": false,\n  \"giveaway_delay\": 2,\n  \"giveaway_dm\": \"\",\n  \"giveaway_dm_delay\": 10,\n  \"privnote_sniper\": true,\n  \"invite_sniper\": true,\n  \"invite_delay\": {\n    \"min\": 10,\n    \"max\": 20\n  },\n  \"invite_max\" : 1,\n  \"invite_cooldown\" : 6,\n  \"webhook\": {\n    \"url\": \"\",\n    \"good_only\": false\n  },\n  \"blacklist_servers\": [\n    \"\"\n  ]\n}\n"
+      "value": "{\n  \"tokens\": {\n    \"main\": \"\",\n    \"alts\": [\n      \"\"\n    ]\n  },\n  \"status\": {\n    \"main\": \"\",\n    \"alts\": \"invisible\"\n  },\n  \"nitro\": {\n    \"max\": 2,\n    \"cooldown\": 24,\n    \"main_sniper\": true\n  },\n  \"giveaway\": {\n    \"enable\": true,\n    \"delay\": 5,\n    \"dm\": \"Hey, I won a giveaway !\",\n    \"dm_delay\": 10,\n    \"blacklist_words\": [\n      \"black\",\n      \"test\",\n      \"ban\"\n    ],\n    \"whitelist_words\": [\n      \"white\",\n      \"nitro\"\n    ],\n    \"blacklist_servers\": [\n      \"\"\n    ]\n  },\n  \"invite\": {\n    \"enable\": true,\n    \"delay\": {\n      \"min\": 10,\n      \"max\": 20\n    },\n    \"max\": 10,\n    \"cooldown\": 6\n  },\n  \"privnote\": {\n    \"enable\": false\n  },\n  \"webhook\": {\n    \"url\": \"\",\n    \"good_only\": false\n  }\n}\n"
     }
   }
 }

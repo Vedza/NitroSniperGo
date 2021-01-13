@@ -1,5 +1,8 @@
 #!/bin/bash
-
+git checkout master
+if ! .git/hooks/pre-commit; then
+  exit 1
+fi
 rm -rf NitroSniperGo_build_*
 mkdir NitroSniperGo_build_win64 NitroSniperGo_build_linux NitroSniperGo_build_mac
 env GOOS=windows GOARCH=amd64 go build && cp settings.json NitroSniperGo.exe NitroSniperGo_build_win64
@@ -9,3 +12,11 @@ zip -r NitroSniperGo_build_linux NitroSniperGo_build_linux
 zip -r NitroSniperGo_build_win64 NitroSniperGo_build_win64
 zip -r NitroSniperGo_build_mac NitroSniperGo_build_mac
 rm -rf NitroSniperGo_build_win64 NitroSniperGo_build_linux NitroSniperGo_build_mac
+hub release create -d -m "NitroSniperGo Build $1" "$1"
+files=$(find . -type f -name "*.zip" -exec echo '-a' {} \;)
+hub release edit $files -m "NitroSniperGo Build $1" $1
+rm -rf *.zip NitroSniperGo*
+git checkout heroku
+git merge --no-ff master
+git push
+git checkout master

@@ -2,7 +2,8 @@
 
 [![GitHub release](https://img.shields.io/github/release/Vedzaa/NitroSniperGo.svg?style=flat)](https://github.com/Vedzaa/NitroSniperGo/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/vedza/NitroSniperGo/total?style=flat)](https://github.com/vedza/NitroSniperGo/releases)
-[![Views](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/Vedza/NitroSniperGo&title=Views)](https://github.com/Vedza/NitroSniperGo)                    
+[![Views](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/Vedza/NitroSniperGo&title=Views)](https://github.com/Vedza/NitroSniperGo)     
+[![Build Status](https://travis-ci.com/Vedza/NitroSniperGo.svg?branch=master)](https://travis-ci.com/Vedza/NitroSniperGo)
 
 <a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="32" width="140"></a>
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
@@ -17,7 +18,8 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Optional main account sniper to only claim code from alts
 * Cooldown for # hour(s) after redeeming # nitro code(s)
 * Duplicate code detection
-* Optional Giveaway joiner and only Nitro Giveaway joiner
+* Optional Giveaway joiner
+* Words blacklist and whitelist to join or not giveaway
 * DM host with custom message if giveaway won
 * Optional Privnote sniper
 * Optional custom status
@@ -33,37 +35,55 @@ Discord Nitro sniper and Giveaway joiner in Go.
 Edit `settings.json`
 ``` json5
 {
-  "main_token": "Nz...", // Your main token here
-  "main_sniper" : true, // Enable or not Nitro sniper on main account (It will only claim code from alts)
-  "alts_tokens": [ // Alts token
-    "",  // Token1
-    ""  // Token2
-  ],
-  "nitro_max": 2, // Max Nitro before cooldown
-  "cooldown": 24, // in Hour
-  "main_status": "", // online, offline, idle, dnd, invisible
-  "alts_status": "", // online, offline, idle, dnd, invisible
-  "giveaway_sniper": true // Enable or not giveaway joiner
-  "nitro_giveaway_sniper": true, // Only join Nitro gieaways
-  "giveaway_delay": 2, // Delay in second before joining giveaway
-  "giveaway_dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
-  "giveaway_dm_delay": 10, // Delay in second before sending DM
-  "privnote_sniper": true, // Enable or not Privnote sniper
-  "invite_sniper": true, // Enable or not server invite sniper
-  "invite_delay": {
-    "min": 5, // Minimum delay in minute before joining server
-    "max": 10 // Maximum delay in minute before joining server
+  "tokens": {
+    "main": "Nz...", // Main token
+    "alts": [ // Alts token
+      "Nz..."
+    ]
   },
-  "invite_max" : 10,  // Max Servers joined before cooldown
-  "invite_cooldown" : 6, // in Hour
+  "status": {
+    "main": "", // online, offline, idle, dnd, invisible
+    "alts": "invisible" // online, offline, idle, dnd, invisible
+  },
+  "nitro": {
+    "max": 2,   // Max Nitro before cooldown
+    "cooldown": 24,  // in Hour
+    "main_sniper": true // Enable or not Nitro sniper on main account (It will only claim code from alts)
+  },
+  "giveaway": {
+    "enable": true, // Enable or not giveaway joiner
+    "delay": 5, // Delay in second before joining giveaway
+    "dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
+    "dm_delay": 10, // Delay in second before sending DM
+    "blacklist_words": [ // Don't join giveaways with these words
+      "black",
+      "test",
+      "ban"
+    ],
+    "whitelist_words": [ // Only join giveaways with these words
+      "white",
+      "nitro"
+    ],
+    "blacklist_servers": [ // IDs of servers you don't want the giveaway joiner to work on
+      ""  
+    ]
+  },
+  "invite": {
+    "enable": true,
+    "delay": {
+      "min": 10, // Minimum delay in minute before joining server
+      "max": 20  // Maximum delay in minute before joining server
+    },
+    "max": 10,    // Max Servers joined before cooldown
+    "cooldown": 6 // in Hour
+  },
+  "privnote": {
+    "enable": false // Enable or not Privnote sniper
+  },
   "webhook": {
     "url": "",
-    "good_only": true // Will trigger webhook only when you applied a Nitro code or won a giveaway
-  },
-  "blacklist_servers": [
-    "727880228696457325",
-    "727888218646457612"
-  ] // IDs of servers you don't want the giveaway joiner to work on
+    "good_only": false // Will trigger webhook only when you applied a Nitro code or won a giveaway
+  }
 }
 ```
 
