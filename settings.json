@@ -20,12 +20,10 @@
     "dm": "Hey, I won a giveaway !",
     "dm_delay": 10,
     "blacklist_words": [
-      "black",
       "test",
       "ban"
     ],
     "whitelist_words": [
-      "white",
       "nitro"
     ],
     "blacklist_servers": [
