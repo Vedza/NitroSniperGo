@@ -76,7 +76,7 @@ Edit `settings.json`
     "max": 10,    // Max Servers joined before cooldown
     "cooldown": 6 // in Hour
   },
-  "privonte": {
+  "privnote": {
     "enable": false // Enable or not Privnote sniper
   },
   "webhook": {
