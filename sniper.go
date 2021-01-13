@@ -58,7 +58,7 @@ type Settings struct {
 	} `json:"invite"`
 	Privnote struct {
 		Enable bool `json:"enable"`
-	} `json:"privnte"`
+	} `json:"privnote"`
 	Webhook struct {
 		URL      string `json:"url"`
 		GoodOnly bool   `json:"good_only"`
