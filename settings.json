@@ -16,11 +16,17 @@
   },
   "giveaway": {
     "enable": true,
-    "delay": 30,
+    "delay": 5,
     "dm": "Hey, I won a giveaway !",
     "dm_delay": 10,
     "blacklist_words": [
-      ""
+      "black",
+      "test",
+      "ban"
+    ],
+    "whitelist_words": [
+      "white",
+      "nitro"
     ],
     "blacklist_servers": [
       ""
@@ -35,7 +41,7 @@
     "max": 10,
     "cooldown": 6
   },
-  "privnte": {
+  "privnote": {
     "enable": false
   },
   "webhook": {

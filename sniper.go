@@ -45,6 +45,7 @@ type Settings struct {
 		DM               string   `json:"dm"`
 		DMDelay          int      `json:"dm_delay"`
 		BlacklistWords   []string `json:"blacklist_words"`
+		WhitelistWords   []string `json:"whitelist_words"`
 		BlacklistServers []string `json:"blacklist_servers"`
 	} `json:"giveaway"`
 	Invite struct {
@@ -740,15 +741,25 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if re.Match([]byte(m.Content)) && SniperRunning {
 		checkGiftLink(s, m, m.Content, false)
 	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
-		if len(settings.Giveaway.BlacklistWords) > 0 {
-			if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
-				if !strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), "nitro") {
-					return
+		if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
+			if len(settings.Giveaway.BlacklistWords) > 0 {
+				for _, word := range settings.Giveaway.BlacklistWords {
+					if strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), strings.ToLower(word)) {
+						return
+					}
 				}
-			} else {
-				return
+			} else if len(settings.Giveaway.WhitelistWords) > 0 {
+				for i, word := range settings.Giveaway.BlacklistWords {
+					if strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), strings.ToLower(word)) {
+						break
+					}
+					if i == len(settings.Giveaway.WhitelistWords) {
+						return
+					}
+				}
 			}
 		}
+
 		time.Sleep(time.Duration(settings.Giveaway.Delay) * time.Second)
 		guild, err := s.State.Guild(m.GuildID)
 		if err != nil || guild == nil {
