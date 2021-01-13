@@ -16,9 +16,9 @@
   },
   "giveaway": {
     "enable": true,
-    "delay": 5,
+    "delay": 20,
     "dm": "Hey, I won a giveaway !",
-    "dm_delay": 10,
+    "dm_delay": 20,
     "blacklist_words": [
       "bot",
       "test",
