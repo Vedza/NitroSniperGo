@@ -733,7 +733,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if re.Match([]byte(m.Content)) && SniperRunning {
 		checkGiftLink(s, m, m.Content, false)
-	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) {
+	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) && m.Author.Bot {
 		if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
 			if len(settings.Giveaway.BlacklistWords) > 0 {
 				for _, word := range settings.Giveaway.BlacklistWords {
@@ -776,7 +776,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		_ = s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
 
-	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, s.State.User.ID) {
+	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, s.State.User.ID) && m.Author.Bot {
 		reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
 		won := reGiveaway.FindStringSubmatch(m.Content)
 		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Content)
