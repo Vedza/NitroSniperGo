@@ -12,7 +12,7 @@ zip -r NitroSniperGo_build_linux NitroSniperGo_build_linux
 zip -r NitroSniperGo_build_win64 NitroSniperGo_build_win64
 zip -r NitroSniperGo_build_mac NitroSniperGo_build_mac
 rm -rf NitroSniperGo_build_win64 NitroSniperGo_build_linux NitroSniperGo_build_mac
-hub release create -d -m "NitroSniperGo Build $1" "$1"
+hub release create -d -m "NitroSniperGo Build $1" $1
 files=$(find . -type f -name "*.zip" -exec echo '-a' {} \;)
 hub release edit $files -m "NitroSniperGo Build $1" $1
 rm -rf *.zip NitroSniperGo*
