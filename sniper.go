@@ -635,7 +635,7 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 	if strings.Contains(bodyString, "redeemed") {
 		yellow.Print("[-] " + response.Message)
 		if settings.Nitro.Delay {
-			println(" Delay: " + strconv.FormatInt(diff.Milliseconds(), 10) + "ms")
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
@@ -643,7 +643,7 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 	} else if strings.Contains(bodyString, "nitro") {
 		_, _ = green.Print("[+] " + response.Message)
 		if settings.Nitro.Delay {
-			println(" Delay: " + strconv.FormatInt(diff.Milliseconds(), 10) + "ms")
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
@@ -658,14 +658,14 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 	} else if strings.Contains(bodyString, "Unknown Gift Code") {
 		_, _ = red.Print("[x] " + response.Message)
 		if settings.Nitro.Delay {
-			println(" Delay: " + strconv.FormatInt(diff.Milliseconds(), 10) + "ms")
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
 	} else {
 		_, _ = yellow.Print("[?] " + response.Message)
 		if settings.Nitro.Delay {
-			println(" Delay: " + strconv.FormatInt(diff.Milliseconds(), 10) + "ms")
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
