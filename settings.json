@@ -12,7 +12,8 @@
   "nitro": {
     "max": 2,
     "cooldown": 24,
-    "main_sniper": true
+    "main_sniper": true,
+    "delay": false
   },
   "giveaway": {
     "enable": true,
@@ -43,7 +44,7 @@
     "cooldown": 6
   },
   "privnote": {
-    "enable": true
+    "enable": false
   },
   "webhook": {
     "url": "",
