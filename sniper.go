@@ -741,21 +741,27 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if re.Match([]byte(m.Content)) && SniperRunning {
 		checkGiftLink(s, m, m.Content, false)
 	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) && m.Author.Bot {
-		if len(m.Embeds) > 0 && m.Embeds[0].Author != nil {
-			if len(settings.Giveaway.BlacklistWords) > 0 {
-				for _, word := range settings.Giveaway.BlacklistWords {
-					if strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), strings.ToLower(word)) {
-						return
-					}
+		content, _ := json.Marshal(m)
+		reUsername := regexp.MustCompile(`username":"[a-zA-Z0-9]+"`)
+		reBot := regexp.MustCompile(`"bot":(true|false)`)
+		content = []byte(reUsername.ReplaceAllString(string(content), ""))
+		content = []byte(reBot.ReplaceAllString(string(content), ""))
+
+		if len(settings.Giveaway.BlacklistWords) > 0 {
+			for _, word := range settings.Giveaway.BlacklistWords {
+				if strings.Contains(strings.ToLower(string(content)), strings.ToLower(word)) {
+					return
 				}
-			} else if len(settings.Giveaway.WhitelistWords) > 0 {
-				for i, word := range settings.Giveaway.BlacklistWords {
-					if strings.Contains(strings.ToLower(m.Embeds[0].Author.Name), strings.ToLower(word)) {
-						break
-					}
-					if i == len(settings.Giveaway.WhitelistWords) {
-						return
-					}
+			}
+		}
+
+		if len(settings.Giveaway.WhitelistWords) > 0 {
+			for i, word := range settings.Giveaway.WhitelistWords {
+				if strings.Contains(strings.ToLower(string(content)), strings.ToLower(word)) {
+					break
+				}
+				if i == len(settings.Giveaway.WhitelistWords) {
+					return
 				}
 			}
 		}
