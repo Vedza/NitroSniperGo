@@ -771,7 +771,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				if strings.Contains(strings.ToLower(string(content)), strings.ToLower(word)) {
 					break
 				}
-				if i == len(settings.Giveaway.WhitelistWords) {
+				if i == len(settings.Giveaway.WhitelistWords)-1 {
 					return
 				}
 			}
