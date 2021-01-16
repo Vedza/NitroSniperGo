@@ -38,6 +38,7 @@ type Settings struct {
 		Max        int  `json:"max"`
 		Cooldown   int  `json:"cooldown"`
 		MainSniper bool `json:"main_sniper"`
+		Delay      bool `json:"delay"`
 	} `json:"nitro"`
 	Giveaway struct {
 		Enable           bool     `json:"enable"`
@@ -85,7 +86,7 @@ var (
 		MaxCost:     1 << 30,
 		BufferItems: 64,
 	})
-	re                = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
+	reGiftLink        = regexp.MustCompile("(discord.com/gifts/|discordapp.com/gifts/|discord.gift/)([a-zA-Z0-9]+)")
 	rePrivnote        = regexp.MustCompile("(https://privnote.com/[0-9A-Za-z]+)#([0-9A-Za-z]+)")
 	rePrivnoteData    = regexp.MustCompile(`"data": "(.*)",`)
 	reInviteServer    = regexp.MustCompile(`"name": "(.*)", "splash"`)
@@ -622,7 +623,7 @@ func main() {
 	}
 }
 
-func checkCode(bodyString string, code string, user *discordgo.User, guild string, channel string) {
+func checkCode(bodyString string, code string, user *discordgo.User, guild string, channel string, diff time.Duration) {
 
 	var response Response
 	err := json.Unmarshal([]byte(bodyString), &response)
@@ -633,9 +634,19 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 	if strings.Contains(bodyString, "redeemed") {
 		yellow.Print("[-] " + response.Message)
+		if settings.Nitro.Delay {
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
+		} else {
+			println()
+		}
 		webhookNitro(code, user, guild, channel, 0, response.Message)
 	} else if strings.Contains(bodyString, "nitro") {
-		_, _ = green.Println("[+] " + response.Message)
+		_, _ = green.Print("[+] " + response.Message)
+		if settings.Nitro.Delay {
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
+		} else {
+			println()
+		}
 		webhookNitro(code, user, guild, channel, 1, response.Message)
 		NitroSniped++
 		if NitroSniped >= settings.Nitro.Max {
@@ -645,26 +656,31 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 			_, _ = yellow.Println("[+] Stopping Nitro sniping for now")
 		}
 	} else if strings.Contains(bodyString, "Unknown Gift Code") {
-		_, _ = red.Println("[x] " + response.Message)
+		_, _ = red.Print("[x] " + response.Message)
+		if settings.Nitro.Delay {
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
+		} else {
+			println()
+		}
 	} else {
 		_, _ = yellow.Print("[?] " + response.Message)
+		if settings.Nitro.Delay {
+			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
+		} else {
+			println()
+		}
 		webhookNitro(code, user, guild, channel, -1, response.Message)
 	}
 	cache.Set(code, "", 1)
+
 }
 
-func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string, privnote bool) {
+func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string, start time.Time) {
 
-	code := re.FindStringSubmatch(link)
+	code := reGiftLink.FindStringSubmatch(link)
 
 	if len(code) < 2 {
 		return
-	}
-
-	if privnote == true {
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[+] Found a gift link in it: ")
-		_, _ = red.Println(code[2])
 	}
 
 	if len(code[2]) < 16 {
@@ -700,6 +716,8 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	if err := fasthttp.Do(req, res); err != nil {
 		return
 	}
+	end := time.Now()
+	diff := end.Sub(start)
 
 	fasthttp.ReleaseRequest(req)
 
@@ -716,7 +734,7 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 		guild, err = s.Guild(m.GuildID)
 		if err != nil {
 			println()
-			checkCode(bodyString, code[2], s.State.User, "DM", m.Author.Username+"#"+m.Author.Discriminator)
+			checkCode(bodyString, code[2], s.State.User, "DM", m.Author.Username+"#"+m.Author.Discriminator, diff)
 			return
 		}
 	}
@@ -726,20 +744,20 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 		channel, err = s.Channel(m.ChannelID)
 		if err != nil {
 			println()
-			checkCode(bodyString, code[2], s.State.User, guild.Name, m.Author.Username+"#"+m.Author.Discriminator)
+			checkCode(bodyString, code[2], s.State.User, guild.Name, m.Author.Username+"#"+m.Author.Discriminator, diff)
 			return
 		}
 	}
 
 	print(" from " + m.Author.String())
 	_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-	checkCode(bodyString, code[2], s.State.User, guild.Name, channel.Name)
+	checkCode(bodyString, code[2], s.State.User, guild.Name, channel.Name, diff)
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if re.Match([]byte(m.Content)) && SniperRunning {
-		checkGiftLink(s, m, m.Content, false)
+	if reGiftLink.Match([]byte(m.Content)) && SniperRunning {
+		checkGiftLink(s, m, m.Content, time.Now())
 	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) && m.Author.Bot {
 		content, _ := json.Marshal(m)
 		reUsername := regexp.MustCompile(`username":"[a-zA-Z0-9]+"`)
@@ -916,8 +934,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		key, iv := openSSLKey([]byte(password), salt)
 		data := Ase256(cryptBytes, key, iv)
-		if re.Match([]byte(data)) && SniperRunning {
-			checkGiftLink(s, m, data, true)
+		if reGiftLink.Match([]byte(data)) && SniperRunning {
+			code := reGiftLink.FindStringSubmatch(data)
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = green.Print("[+] Found a gift link in it: ")
+			_, _ = red.Println(code[2])
+			checkGiftLink(s, m, data, time.Now())
 		} else {
 			f, err := os.OpenFile("privnotes.txt",
 				os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

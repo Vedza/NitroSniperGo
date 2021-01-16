@@ -49,7 +49,8 @@ Edit `settings.json`
     "max": 2,   // Max Nitro before cooldown
     "cooldown": 24,  // in Hour
     "main_sniper": true // Enable or not Nitro sniper on main account (It will only claim code from alts)
-  },
+    "delay": true // Print or not redeem delay (useful to compare heroku/vps and your pc but hard to be compare with other snipers for various reasons)
+},
   "giveaway": {
     "enable": true, // Enable or not giveaway joiner
     "delay": 5, // Delay in second before joining giveaway
