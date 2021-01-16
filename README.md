@@ -59,7 +59,7 @@ Edit `settings.json`
       "test",
       "ban"
     ],
-    "whitelist_words": [ // Only join giveaways with these words
+    "whitelist_words": [ // Only join giveaways with these words (put [] to join every giveaway)
       "nitro"
     ],
     "blacklist_servers": [ // IDs of servers you don't want the giveaway joiner to work on
