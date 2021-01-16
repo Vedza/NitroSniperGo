@@ -157,7 +157,7 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 	res := fasthttp.AcquireResponse()
 
 	if err := fasthttp.Do(req, res); err != nil {
-		panic("handle error")
+		return
 	}
 
 	fasthttp.ReleaseRequest(req)
@@ -288,7 +288,7 @@ func webhookNitro(code string, user *discordgo.User, guild string, channel strin
 	res := fasthttp.AcquireResponse()
 
 	if err := fasthttp.Do(req, res); err != nil {
-		panic("handle error")
+		return
 	}
 
 	println(string(res.Body()))
@@ -354,7 +354,7 @@ func webhookGiveaway(prize string, user *discordgo.User, guild string, channel s
 	res := fasthttp.AcquireResponse()
 
 	if err := fasthttp.Do(req, res); err != nil {
-		panic("handle error")
+		return
 	}
 
 	fasthttp.ReleaseRequest(req)
@@ -419,7 +419,7 @@ func webhookPrivnote(content string, user *discordgo.User, guild string, channel
 	res := fasthttp.AcquireResponse()
 
 	if err := fasthttp.Do(req, res); err != nil {
-		panic("handle error")
+		return
 	}
 
 	fasthttp.ReleaseRequest(req)
@@ -435,7 +435,7 @@ func getPaymentSourceId() {
 	res := fasthttp.AcquireResponse()
 
 	if err := fasthttp.Do(req, res); err != nil {
-		panic("handle error")
+		return
 	}
 
 	fasthttp.ReleaseRequest(req)
@@ -698,7 +698,7 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	res := fasthttp.AcquireResponse()
 
 	if err := fasthttp.Do(req, res); err != nil {
-		panic("handle error")
+		return
 	}
 
 	fasthttp.ReleaseRequest(req)
@@ -889,7 +889,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		res := fasthttp.AcquireResponse()
 
 		if err := fasthttp.Do(req, res); err != nil {
-			panic("handle error")
+			return
 		}
 
 		fasthttp.ReleaseRequest(req)
@@ -952,12 +952,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 		code := reInviteLink.FindStringSubmatch(m.Content)[1]
-
 		var f = join(code, s, m)
-
-		println()
 		n := rand.Intn(settings.Invite.Delay.Max - settings.Invite.Delay.Min)
-
 		time.AfterFunc(time.Minute*(time.Duration(settings.Invite.Delay.Min)+time.Duration(n)), f)
 	}
 }
