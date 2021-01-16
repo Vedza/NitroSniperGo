@@ -28,7 +28,9 @@
       "nitro"
     ],
     "blacklist_servers": [
-      ""
+      "ban",
+      "test",
+      "bot"
     ]
   },
   "invite": {
