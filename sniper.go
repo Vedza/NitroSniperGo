@@ -54,7 +54,7 @@ type Settings struct {
 			Min int `json:"min"`
 			Max int `json:"max"`
 		} `json:"delay"`
-		InviteMax int `json:"invite_max"`
+		InviteMax int `json:"max"`
 		Cooldown  int `json:"cooldown"`
 	} `json:"invite"`
 	Privnote struct {
