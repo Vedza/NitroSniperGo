@@ -90,7 +90,7 @@ You have multiple choices to run the sniper :
 
 - [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) (Free 24/7)
    * Deploy
-   * Resources -> enable worker
+   * Resources -> enable sniper
    * See logs in More -> View logs
 
 - Download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)

@@ -747,6 +747,31 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	checkCode(bodyString, code[2], s.State.User, guild.Name, channel.Name, diff)
 }
 
+func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
+	giveaway := reGiveawayMessage.FindStringSubmatch(m.Content)
+
+	var giveawayID string
+	if len(giveaway) > 1 {
+		giveawayID = giveaway[3]
+	} else {
+		giveawayID = m.Message.ID
+	}
+
+	messages, _ := s.ChannelMessages(m.ChannelID, 100, "", "", giveawayID)
+
+	reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
+
+	for i := len(messages) - 1; i >= 0; i-- {
+		if messages[i].Embeds[0] != nil {
+			if reGiveawayHost.Match([]byte(messages[i].Embeds[0].Description)) {
+				host := reGiveawayHost.FindStringSubmatch(messages[i].Embeds[0].Description)[1]
+				return host
+			}
+		}
+	}
+	return ""
+}
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if reGiftLink.Match([]byte(m.Content)) && SniperRunning {
@@ -796,12 +821,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = yellow.Print("[-] " + s.State.User.Username + " entered a Giveaway ")
+		_, _ = yellow.Print("[-] " + s.State.User.Username + " entered a Giveaway")
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		_ = s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
 
 	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, s.State.User.ID) && m.Author.Bot {
-		reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
 		won := reGiveaway.FindStringSubmatch(m.Content)
 		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Content)
 		guild, err := s.State.Guild(m.GuildID)
@@ -832,28 +856,28 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 			webhookGiveaway("", s.State.User, guild.Name, channel.Name)
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-			return
-		}
-
-		messages, _ := s.ChannelMessages(m.ChannelID, 1, "", "", giveawayID[3])
-
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
-		if len(won) > 1 {
-			_, _ = green.Print(": ")
-			webhookGiveaway(won[1], s.State.User, guild.Name, channel.Name)
-			_, _ = cyan.Print(won[1])
 		} else {
-			webhookGiveaway("", s.State.User, guild.Name, channel.Name)
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
+			if len(won) > 1 {
+				_, _ = green.Print(": ")
+				webhookGiveaway(won[1], s.State.User, guild.Name, channel.Name)
+				_, _ = cyan.Print(won[1])
+			} else {
+				webhookGiveaway("", s.State.User, guild.Name, channel.Name)
+			}
+			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		}
-		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 
 		if settings.Giveaway.DM != "" {
-			giveawayHost := reGiveawayHost.FindStringSubmatch(messages[0].Embeds[0].Description)
-			if len(giveawayHost) < 2 {
+			var giveawayHost = findHost(s, m)
+			if giveawayHost == "" {
+				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+				_, _ = red.Print("[x] Couldn't determine giveaway host")
+				_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 				return
 			}
-			hostChannel, err := s.UserChannelCreate(giveawayHost[1])
+			hostChannel, err := s.UserChannelCreate(giveawayHost)
 
 			if err != nil {
 				return
@@ -865,7 +889,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 
-			host, _ := s.User(giveawayHost[1])
+			host, _ := s.User(giveawayHost)
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = green.Print("[+] " + s.State.User.Username + " sent DM to host: ")
 			_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
