@@ -766,14 +766,13 @@ func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
 
 	messages, _ := s.ChannelMessages(m.ChannelID, 100, "", "", giveawayID)
 
-	reGiveawayHost := regexp.MustCompile("Hosted by: <@(.*)>")
+	reGiveawayHost := regexp.MustCompile("Hosted by: .*003c@([0-9]+).*003e")
 
 	for i := len(messages) - 1; i >= 0; i-- {
-		if messages[i].Embeds[0] != nil {
-			if reGiveawayHost.Match([]byte(messages[i].Embeds[0].Description)) {
-				host := reGiveawayHost.FindStringSubmatch(messages[i].Embeds[0].Description)[1]
-				return host
-			}
+		content, _ := json.Marshal(messages[i])
+		if reGiveawayHost.Match(content) {
+			host := reGiveawayHost.FindStringSubmatch(string(content))[1]
+			return host
 		}
 	}
 	return ""
