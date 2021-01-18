@@ -95,10 +95,7 @@ You have multiple choices to run the sniper :
    * Resources -> enable sniper
    * See logs in More -> View logs
 
-- [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) (Free 24/7)
-   * Deploy
-   * Edit `settings.json`
-   * Run
+- [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) ( ⚠️ Only use this option if you can have private repls)
 
 - Download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
 
