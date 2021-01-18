@@ -1,12 +1,11 @@
 > # NitroSniperGo
 
-[![GitHub release](https://img.shields.io/github/release/Vedzaa/NitroSniperGo.svg?style=flat)](https://github.com/Vedzaa/NitroSniperGo/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/vedza/NitroSniperGo/total?style=flat)](https://github.com/vedza/NitroSniperGo/releases)
-[![Views](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/Vedza/NitroSniperGo&title=Views)](https://github.com/Vedza/NitroSniperGo)     
+[![Views](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https://github.com/Vedza/NitroSniperGo&title=Views)](https://github.com/Vedza/NitroSniperGo)  
+[![GitHub release](https://img.shields.io/github/release/Vedzaa/NitroSniperGo.svg?style=flat)](https://github.com/Vedzaa/NitroSniperGo/releases)
 [![Build Status](https://travis-ci.com/Vedza/NitroSniperGo.svg?branch=master)](https://travis-ci.com/Vedza/NitroSniperGo)
 
 <a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="32" width="140"></a>
-
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
 <a href="https://repl.it/github/Vedza/NitroSniperGo" target="_blank"><img src="https://repl.it/badge/github/Vedza/NitroSniperGo" alt="Deploy on Repl.it" height="32" width="160"></a>
@@ -95,6 +94,11 @@ You have multiple choices to run the sniper :
    * Deploy
    * Resources -> enable sniper
    * See logs in More -> View logs
+
+- [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) (Free 24/7)
+   * Deploy
+   * Edit `settings.json`
+   * Run
 
 - Download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
 
