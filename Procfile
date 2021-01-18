@@ -1,1 +1,1 @@
-sniper: bin//NitroSniperGo
+sniper: bin/NitroSniperGo
