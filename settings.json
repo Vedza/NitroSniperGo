@@ -13,7 +13,7 @@
     "max": 2,
     "cooldown": 24,
     "main_sniper": true,
-    "delay": false
+    "delay": true
   },
   "giveaway": {
     "enable": true,
@@ -28,11 +28,7 @@
     "whitelist_words": [
       "nitro"
     ],
-    "blacklist_servers": [
-      "ban",
-      "test",
-      "bot"
-    ]
+    "blacklist_servers": []
   },
   "invite": {
     "enable": true,
