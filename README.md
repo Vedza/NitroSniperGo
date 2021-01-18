@@ -8,7 +8,7 @@
 <a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="32" width="140"></a>
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
-<a href="https://repl.it/github/Vedza/NitroSniperGo" target="_blank"><img src="https://repl.it/badge/github/Vedza/NitroSniperGo" alt="Deploy on Repl.it" height="32" width="160"></a>
+<!-- <a href="https://repl.it/github/Vedza/NitroSniperGo" target="_blank"><img src="https://repl.it/badge/github/Vedza/NitroSniperGo" alt="Deploy on Repl.it" height="32" width="160"></a>-->
 
 Discord Nitro sniper and Giveaway joiner in Go.
 
@@ -95,8 +95,6 @@ You have multiple choices to run the sniper :
    * Resources -> enable sniper
    * See logs in More -> View logs
 
-- [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) ( ⚠️ Only use this option if you can have private repls)
-
 - Download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
 
 - Compile it yourself
@@ -105,6 +103,9 @@ You have multiple choices to run the sniper :
   go build
   ./NitroSniperGo
   ```
+  
+ - [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) ( ⚠️ Only use this option if you can have private repls)
+
  
 #### How to obtain your token
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
