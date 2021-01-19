@@ -757,7 +757,7 @@ func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
 		giveawayID = m.Message.ID
 	}
 
-	messages, _ := s.ChannelMessages(m.ChannelID, 100, "", "", giveawayID)
+	messages, _ := s.ChannelMessages(m.ChannelID, 300, "", "", giveawayID)
 
 	reGiveawayHost := regexp.MustCompile("Hosted by: .*003c@([0-9]+).*003e")
 
