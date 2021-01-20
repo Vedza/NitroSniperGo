@@ -10,6 +10,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/dgraph-io/ristretto"
 	"github.com/fatih/color"
+	"github.com/kardianos/osext"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"log"
@@ -453,6 +454,11 @@ func getPaymentSourceId() {
 	}
 }
 func init() {
+	executablePath, err := osext.ExecutableFolder()
+	if err != nil {
+		log.Fatal("Error: Couldn't determine working directory: " + err.Error())
+	}
+	os.Chdir(executablePath)
 	file, err := ioutil.ReadFile("settings.json")
 	if err != nil {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
