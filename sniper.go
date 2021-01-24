@@ -24,6 +24,7 @@ import (
 	"syscall"
 	"time"
 	"unicode"
+	//"net/http" //uncomment this for replit support and check line 545
 )
 
 type Settings struct {
@@ -537,6 +538,11 @@ func main() {
 
 	c.Stdout = os.Stdout
 	_ = c.Run()
+	/*http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintf(w, "Sniper is working!")
+    })
+
+        go http.ListenAndServe(":8080", nil)*/  //remove the /* and */ for replit support!
 	color.Red(`
 ▓█████▄  ██▓  ██████  ▄████▄   ▒█████   ██▀███  ▓█████▄      ██████  ███▄    █  ██▓ ██▓███  ▓█████  ██▀███
 ▒██▀ ██▌▓██▒▒██    ▒ ▒██▀ ▀█  ▒██▒  ██▒▓██ ▒ ██▒▒██▀ ██▌   ▒██    ▒  ██ ▀█   █ ▓██▒▓██░  ██▒▓█   ▀ ▓██ ▒ ██▒
