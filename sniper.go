@@ -291,7 +291,6 @@ func webhookNitro(code string, user *discordgo.User, guild string, channel strin
 		return
 	}
 
-	println(string(res.Body()))
 	fasthttp.ReleaseRequest(req)
 	fasthttp.ReleaseResponse(res)
 }
@@ -626,7 +625,7 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 	}
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 	if strings.Contains(bodyString, "redeemed") {
-		yellow.Print("[-] " + response.Message)
+		_, _ = yellow.Print("[-] " + response.Message)
 		if settings.Nitro.Delay {
 			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
@@ -634,13 +633,14 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 		}
 		webhookNitro(code, user, guild, channel, 0, response.Message)
 	} else if strings.Contains(bodyString, "nitro") {
-		_, _ = green.Print("[+] " + response.Message)
+		println(bodyString)
+		_, _ = green.Print("[+] Nitro applied !")
 		if settings.Nitro.Delay {
 			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
-		webhookNitro(code, user, guild, channel, 1, response.Message)
+		webhookNitro(code, user, guild, channel, 1, "Nitro applied ")
 		NitroSniped++
 		if NitroSniped >= settings.Nitro.Max {
 			SniperRunning = false

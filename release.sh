@@ -17,6 +17,11 @@ files=$(find . -type f -name "*.zip" -exec echo '-a' {} \;)
 hub release edit $files -m "NitroSniperGo Build $1" $1
 rm -rf *.zip NitroSniperGo*
 git checkout heroku
+git pull
 git merge --no-ff master
+git push
+git checkout replit
+git pull
+git merge --no-ff heroku
 git push
 git checkout master
