@@ -19,4 +19,7 @@ rm -rf *.zip NitroSniperGo*
 git checkout heroku
 git merge --no-ff master
 git push
+git checkout replit
+git merge --no-ff heroku
+git push
 git checkout master
