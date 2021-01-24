@@ -1,2 +1,2 @@
 language = "go"
-run = "git checkout replit && go build && ./NitroSniperGo"
+run = "go build && ./NitroSniperGo"

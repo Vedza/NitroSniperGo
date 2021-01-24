@@ -11,7 +11,6 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -292,7 +291,6 @@ func webhookNitro(code string, user *discordgo.User, guild string, channel strin
 		return
 	}
 
-	println(string(res.Body()))
 	fasthttp.ReleaseRequest(req)
 	fasthttp.ReleaseResponse(res)
 }
@@ -453,15 +451,9 @@ func getPaymentSourceId() {
 	}
 }
 func init() {
-	file, err := ioutil.ReadFile("settings.json")
-	if err != nil {
-		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = red.Println("[x] Failed read file: ", err)
-		time.Sleep(4 * time.Second)
-		os.Exit(-1)
-	}
+	var file = os.Getenv("SETTINGS")
 
-	err = json.Unmarshal(file, &settings)
+	var err = json.Unmarshal([]byte(file), &settings)
 	if err != nil {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = red.Println("[x] Failed to parse JSON file: ", err)
@@ -633,7 +625,7 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 	}
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 	if strings.Contains(bodyString, "redeemed") {
-		yellow.Print("[-] " + response.Message)
+		_, _ = yellow.Print("[-] " + response.Message)
 		if settings.Nitro.Delay {
 			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
@@ -641,13 +633,14 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 		}
 		webhookNitro(code, user, guild, channel, 0, response.Message)
 	} else if strings.Contains(bodyString, "nitro") {
-		_, _ = green.Print("[+] " + response.Message)
+		println(bodyString)
+		_, _ = green.Print("[+] Nitro applied !")
 		if settings.Nitro.Delay {
 			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
-		webhookNitro(code, user, guild, channel, 1, response.Message)
+		webhookNitro(code, user, guild, channel, 1, "Nitro applied ")
 		NitroSniped++
 		if NitroSniped >= settings.Nitro.Max {
 			SniperRunning = false
@@ -765,6 +758,10 @@ func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
 	}
 
 	messages, _ := s.ChannelMessages(m.ChannelID, 100, "", "", giveawayID)
+	messages2, _ := s.ChannelMessages(m.ChannelID, 100, "", "", messages[len(messages)-1].ID)
+	messages3, _ := s.ChannelMessages(m.ChannelID, 100, "", "", messages2[len(messages2)-1].ID)
+	messages = append(messages, messages2...)
+	messages = append(messages, messages3...)
 
 	reGiveawayHost := regexp.MustCompile("Hosted by: .*003c@([0-9]+).*003e")
 

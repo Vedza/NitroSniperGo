@@ -104,7 +104,7 @@ You have multiple choices to run the sniper :
   ./NitroSniperGo
   ```
   
- - [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) ( ⚠️ Only use this option if you can have private repls)
+ <!-- - [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) -->
 
  
 #### How to obtain your token
