@@ -93,6 +93,7 @@ var (
 	reGiveawayMessage = regexp.MustCompile("<https://discordapp.com/channels/(.*)/(.*)/(.*)>")
 	rePaymentSourceId = regexp.MustCompile(`("id": ")([0-9]+)"`)
 	reInviteLink      = regexp.MustCompile("https://discord.gg/([0-9a-zA-Z]+)")
+	reNitroType       = regexp.MustCompile(` "name": "([ a-zA-Z]+)", "features"`)
 	magenta           = color.New(color.FgMagenta)
 	green             = color.New(color.FgGreen)
 	yellow            = color.New(color.FgYellow)
@@ -633,14 +634,19 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 		}
 		webhookNitro(code, user, guild, channel, 0, response.Message)
 	} else if strings.Contains(bodyString, "nitro") {
-		println(bodyString)
-		_, _ = green.Print("[+] Nitro applied !")
+		nitroType := ""
+		if reNitroType.Match([]byte(bodyString)) {
+			nitroType = reNitroType.FindStringSubmatch(bodyString)[1]
+		}
+		_, _ = green.Print("[+] Nitro applied : ")
+		_, _ = cyan.Print(nitroType)
+
 		if settings.Nitro.Delay {
 			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
-		webhookNitro(code, user, guild, channel, 1, "Nitro applied ")
+		webhookNitro(code, user, guild, channel, 1, nitroType)
 		NitroSniped++
 		if NitroSniped >= settings.Nitro.Max {
 			SniperRunning = false
