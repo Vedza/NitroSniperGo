@@ -31,6 +31,8 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Webhook support with good only mode that report only codes applied and giveaways won.
 * Blacklist servers to not join any giveaways on these servers
 * Custom delay to join giveaways, servers and DM giveaways host
+* Print Nitro type when applied (Classic or Boost)
+
 
 #### Usage
 
