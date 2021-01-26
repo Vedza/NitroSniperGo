@@ -7,13 +7,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"github.com/dgraph-io/ristretto"
-	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
-	"github.com/faiface/beep/speaker"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
+	"github.com/vedza/discordgo"
 	"log"
 	"math/rand"
 	"os"
@@ -637,26 +634,7 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 		}
 		webhookNitro(code, user, guild, channel, 0, response.Message)
 	} else if strings.Contains(bodyString, "nitro") {
-		f, err := os.Open("sound.mp3")
-		if err != nil {
-			log.Fatal(err)
-		}
 
-		var format beep.Format
-		sound, format, err := mp3.Decode(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer sound.Close()
-
-		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
-		done := make(chan bool)
-		speaker.Play(beep.Seq(sound, beep.Callback(func() {
-			done <- true
-		})))
-
-		<-done
 		nitroType := ""
 		if reNitroType.Match([]byte(bodyString)) {
 			nitroType = reNitroType.FindStringSubmatch(bodyString)[1]
