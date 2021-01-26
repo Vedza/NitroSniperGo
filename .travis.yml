@@ -3,3 +3,5 @@ go:
   - 1.11.x
 env:
   - GO111MODULE=on
+before_install:
+  - sudo apt-get install libasound2-dev
