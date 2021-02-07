@@ -39,10 +39,11 @@ type Settings struct {
 		Alts string `json:"alts"`
 	} `json:"status"`
 	Nitro struct {
-		Max        int  `json:"max"`
-		Cooldown   int  `json:"cooldown"`
-		MainSniper bool `json:"main_sniper"`
-		Delay      bool `json:"delay"`
+		Max              int      `json:"max"`
+		Cooldown         int      `json:"cooldown"`
+		MainSniper       bool     `json:"main_sniper"`
+		Delay            bool     `json:"delay"`
+		BlacklistServers []string `json:"blacklist_servers"`
 	} `json:"nitro"`
 	Giveaway struct {
 		Enable           bool     `json:"enable"`
@@ -819,7 +820,7 @@ func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if reGiftLink.Match([]byte(m.Content)) && SniperRunning {
+	if reGiftLink.Match([]byte(m.Content)) && SniperRunning && !contains(settings.Nitro.BlacklistServers, m.GuildID) {
 		checkGiftLink(s, m, m.Content, time.Now())
 	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) && m.Author.Bot {
 		content, _ := json.Marshal(m)

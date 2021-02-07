@@ -13,7 +13,8 @@
     "max": 2,
     "cooldown": 24,
     "main_sniper": true,
-    "delay": true
+    "delay": true,
+    "blacklist_servers": []
   },
   "giveaway": {
     "enable": true,
