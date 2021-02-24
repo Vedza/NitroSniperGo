@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Please check previous issues before opening a new one**
+**Please check previous issues before opening a new one as well as [Know Issues](https://github.com/Vedza/NitroSniperGo#known-issues)**
 
 **Describe the bug**
 A clear and concise description of what the bug is.
