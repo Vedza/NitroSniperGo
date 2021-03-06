@@ -5,6 +5,8 @@
 [![GitHub release](https://img.shields.io/github/release/Vedzaa/NitroSniperGo.svg?style=flat)](https://github.com/Vedzaa/NitroSniperGo/releases)
 [![Build Status](https://travis-ci.com/Vedza/NitroSniperGo.svg?branch=master)](https://travis-ci.com/Vedza/NitroSniperGo)
 
+[![Run it on Repl.it](https://img.shields.io/badge/Run%20it%20on%20Repl.it-667881?style=for-the-badge&logo=repl.it&logoColor=667881&labelColor=fff)](https://repl.it/github/vedza/NitroSniperGo)
+
 <a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="32" width="140"></a>
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
