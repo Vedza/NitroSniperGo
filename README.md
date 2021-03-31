@@ -14,7 +14,8 @@ Discord Nitro sniper and Giveaway joiner in Go.
 
 ![Screenshot](screenshot.png)
 
-#### Features 
+#### Features
+
 * Multiple accounts support to claim on one main account
 * Optional Counter for max Nitro activations
 * Optional main account sniper to only claim code from alts
@@ -37,6 +38,7 @@ Discord Nitro sniper and Giveaway joiner in Go.
 #### Usage
 
 Edit `settings.json`
+
 ``` json5
 {
   "tokens": {
@@ -53,7 +55,7 @@ Edit `settings.json`
     "max": 2,   // Max Nitro before cooldown
     "cooldown": 24,  // in Hour
     "main_sniper": true // Enable or not Nitro sniper on main account (It will only claim code from alts)
-    "delay": true // Print or not redeem delay (useful to compare heroku/vps and your pc but hard to be compare with other snipers for various reasons)
+    "delay": true // Print or not redeem delay (useful to compare heroku/vps and your pc but hard to compare with other snipers for various reasons)
 },
   "giveaway": {
     "enable": true, // Enable or not giveaway joiner
@@ -86,16 +88,18 @@ Edit `settings.json`
   "webhook": {
     "url": "",
     "good_only": false // Will trigger webhook only when you applied a Nitro code or won a giveaway
-  }
+  },
+  "blacklist_servers": [] // IDs of servers you don't want the sniper to work on
+
 }
 ```
 
-You have multiple choices to run the sniper : 
+You have multiple choices to run the sniper :
 
 - [Deploy on Heroku](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku) (Free 24/7)
-   * Deploy
-   * Resources -> enable sniper
-   * See logs in More -> View logs
+    * Deploy
+    * Resources -> enable sniper
+    * See logs in More -> View logs
 
 - Download the latest [release](https://github.com/Vedza/NitroSniperGo/releases)
 
@@ -105,21 +109,27 @@ You have multiple choices to run the sniper :
   go build
   ./NitroSniperGo
   ```
-  
+
  <!-- - [Deploy on Repl.it](https://repl.it/github/Vedza/NitroSniperGo) -->
 
- 
 #### How to obtain your token
+
 https://github.com/Tyrrrz/DiscordChatExporter/wiki/Obtaining-Token-and-Channel-IDs#how-to-get-a-user-token
 
 #### Known issues
+
 * `error unmarshalling READY event` is not a problem, it just happens because you're doing a self bot
-* `Already purchased` happens when the gift is a Xbox game pass plan, so if you already activated a discord game pass code you can't activate it anymore
-* It looks like Discord added a security feature where your token change every time but also expire with 2FA, that might be the reason why the sniper doesn't work after some time or if you get an unauthorized error when sniping Nitro
+* `Already purchased` happens when the gift is a Xbox game pass plan, so if you already activated a discord game pass
+  code you can't activate it anymore
+* It looks like Discord added a security feature where your token change every time but also expire with 2FA, that might
+  be the reason why the sniper doesn't work after some time or if you get an unauthorized error when sniping Nitro
 * Some welcome bots mention giveaways that might cause a false positive
-* Privnote sniper makes the program crash sometimes, disable it in settings if that happens to you until I find a solution
+* Privnote sniper makes the program crash sometimes, disable it in settings if that happens to you until I find a
+  solution
 
 #### Disclaimer
-This is against TOS and can get your account banned, especially if you run multiple instance at the same time and/or claim too many Nitros in a too short amount of time. Use it at your own risks.
+
+This is against TOS and can get your account banned, especially if you run multiple instance at the same time and/or
+claim too many Nitros in a too short amount of time. Use it at your own risks.
 
 > *If you like my sniper consider putting a star on this repo !*
