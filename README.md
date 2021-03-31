@@ -31,6 +31,7 @@ Discord Nitro sniper and Giveaway joiner in Go.
 * Cooldown for # hour(s) after joining # server(s)
 * Webhook support with good only mode that report only codes applied and giveaways won.
 * Blacklist servers to not join any giveaways on these servers
+* Blacklist servers to not snipe anything in it
 * Custom delay to join giveaways, servers and DM giveaways host
 * Print Nitro type when applied (Classic or Boost)
 * Play sound when Nitro sniped (replace sound.mp3 to change the sound)
