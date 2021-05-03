@@ -152,7 +152,7 @@ func contains(array []string, value string) bool {
 	return false
 }
 
-func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
+func joinServer(code string, s *discordgo.Session, m *discordgo.Message) {
 	if !InviteRunning {
 		return
 	}
@@ -223,7 +223,7 @@ func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func join(code string, s *discordgo.Session, m *discordgo.MessageCreate) func() {
+func join(code string, s *discordgo.Session, m *discordgo.Message) func() {
 	return func() {
 		joinServer(code, s, m)
 	}
@@ -500,6 +500,7 @@ func inviteTimerEnd() {
 
 func run(token string, finished chan bool, index int) {
 	currentToken = token
+
 	dg, err := discordgo.New(token)
 	if err != nil {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
@@ -635,7 +636,6 @@ func main() {
 }
 
 func checkCode(bodyString string, code string, user *discordgo.User, guild string, channel string, diff time.Duration) {
-
 	var response Response
 	err := json.Unmarshal([]byte(bodyString), &response)
 
@@ -712,7 +712,7 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 
 }
 
-func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string, start time.Time) {
+func checkGiftLink(s *discordgo.Session, m *discordgo.Message, link string, start time.Time) {
 
 	code := reGiftLink.FindStringSubmatch(link)
 
@@ -791,14 +791,14 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	checkCode(bodyString, code[2], s.State.User, guild.Name, channel.Name, diff)
 }
 
-func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
+func findHost(s *discordgo.Session, m *discordgo.Message) string {
 	giveaway := reGiveawayMessage.FindStringSubmatch(m.Content)
 
 	var giveawayID string
 	if len(giveaway) > 1 {
 		giveawayID = giveaway[3]
 	} else {
-		giveawayID = m.Message.ID
+		giveawayID = m.ID
 	}
 
 	messages, _ := s.ChannelMessages(m.ChannelID, 100, "", "", giveawayID)
@@ -819,11 +819,14 @@ func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
 	return ""
 }
 
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	if contains(settings.BlacklistServers, m.GuildID) {
+func messageCreate(s *discordgo.Session, m_temp *discordgo.MessageCreate) {
+	if contains(settings.BlacklistServers, m_temp.GuildID) {
 		return
 	}
+	var m *discordgo.Message
+
+	nms, _ := s.ChannelMessages(m_temp.ChannelID, 1, "", "", "")
+	m = nms[0]
 
 	if reGiftLink.Match([]byte(m.Content)) && SniperRunning {
 		checkGiftLink(s, m, m.Content, time.Now())
