@@ -826,6 +826,9 @@ func messageCreate(s *discordgo.Session, m_temp *discordgo.MessageCreate) {
 	var m *discordgo.Message
 
 	nms, _ := s.ChannelMessages(m_temp.ChannelID, 1, "", "", "")
+	if len(nms) < 1 {
+		return
+	}
 	m = nms[0]
 
 	if reGiftLink.Match([]byte(m.Content)) && SniperRunning {
