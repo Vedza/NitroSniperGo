@@ -1,12 +1,11 @@
 #!/bin/bash
 git checkout master
-if ! .git/hooks/pre-commit; then
-  exit 1
-fi
 rm -rf NitroSniperGo_build_*
 mkdir NitroSniperGo_build_win64 NitroSniperGo_build_linux NitroSniperGo_build_mac
-env GOOS=windows GOARCH=amd64 go build && cp settings.json settings.json NitroSniperGo.exe NitroSniperGo_build_win64
-env GOOS=linux go build && cp settings.json settings.json NitroSniperGo NitroSniperGo_build_linux
+docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp golang:1.16 env GOOS=windows GOARCH=amd64 go build
+cp settings.json settings.json NitroSniperGo.exe NitroSniperGo_build_win64
+docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp golang:1.16 env GOOS=linux go build
+cp settings.json settings.json NitroSniperGo NitroSniperGo_build_linux
 go build && cp NitroSniperGo settings.json sound.mp3 NitroSniperGo_build_mac
 zip -r NitroSniperGo_build_linux NitroSniperGo_build_linux
 zip -r NitroSniperGo_build_win64 NitroSniperGo_build_win64
