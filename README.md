@@ -12,6 +12,13 @@
 
 Discord Nitro sniper and Giveaway joiner in Go.
 
+#### Update 05/04 /!\
+Discord made an update that broke the Sniper.
+
+I found a solution that might be released in the next weeks because it require some works.
+
+But there is a really short solution available now on this repo, but it's quite bad and I do not recommend it because it takes a lot of ram and get your rate limited really fast.
+
 ![Screenshot](screenshot.png)
 
 #### Features
