@@ -653,10 +653,15 @@ func main() {
 
 			user, _ = client.GetCurrentUser(ctx)
 		}
-
 	}()
 
 	<-finished
+
+	for {
+		if user != nil {
+			break
+		}
+	}
 	c := exec.Command("clear")
 
 	c.Stdout = os.Stdout
