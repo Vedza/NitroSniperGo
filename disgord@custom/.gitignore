@@ -1,0 +1,4 @@
+.idea
+*.test
+cprof
+*_ignore
