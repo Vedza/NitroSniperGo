@@ -620,7 +620,7 @@ func main() {
 					_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 					_, _ = red.Println("[x] Error creating Discord session for "+settings.Tokens.Main+",", err)
 					time.Sleep(4 * time.Second)
-					os.Exit(-1) //	authedAlts <- "?" + token
+					os.Exit(-1)
 					return
 				}
 			}(client, ctx)
@@ -629,7 +629,7 @@ func main() {
 				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 				_, _ = red.Println("[x] Error opening Discord session for "+settings.Tokens.Main+",", err)
 				time.Sleep(4 * time.Second)
-				os.Exit(-1) //	authedAlts <- "?" + token
+				os.Exit(-1)
 				return
 			}
 
@@ -642,7 +642,9 @@ func main() {
 		}
 	}()
 
-	<-finished
+	if len(settings.Tokens.Alts) > 0 {
+		<-finished
+	}
 
 	for {
 		if user != nil {
