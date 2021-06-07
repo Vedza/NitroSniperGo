@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/andersfylling/disgord"
+	"github.com/Vedza/disgord"
 	"github.com/dgraph-io/ristretto"
 	"github.com/fatih/color"
 	"github.com/kardianos/osext"
@@ -513,7 +513,7 @@ func run(token string, finished *chan bool, index int) {
 	var err error
 	ctx := context.Background()
 	defer func(client *disgord.Client, ctx context.Context) {
-		err := client.StayConnectedUntilInterrupted(ctx)
+		err := client.Gateway().StayConnectedUntilInterrupted()
 		if err != nil {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = red.Println("[x] Error creating Discord session for "+token+",", err)
@@ -531,7 +531,7 @@ func run(token string, finished *chan bool, index int) {
 		return
 	}
 
-	guilds, _ := client.GetCurrentUserGuilds(ctx, &disgord.GetCurrentUserGuildsParams{
+	guilds, _ := client.CurrentUser().GetGuilds(&disgord.GetCurrentUserGuildsParams{
 		Before: 0,
 		After:  0,
 		Limit:  100,
@@ -540,7 +540,10 @@ func run(token string, finished *chan bool, index int) {
 		if settings.Status.Main != "" {
 			_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
 		}*/
-	client.On(disgord.EvtMessageCreate, messageCreate)
+	client.Gateway().
+		MessageCreate(func(s disgord.Session, evt *disgord.MessageCreate) {
+			messageCreate(s, evt)
+		})
 
 	nbServers += len(guilds)
 	//user, _ := client.GetCurrentUser(ctx)
@@ -588,7 +591,7 @@ func main() {
 
 			ctx := context.Background()
 			defer func(client *disgord.Client, ctx context.Context) {
-				err := client.StayConnectedUntilInterrupted(ctx)
+				err := client.Gateway().StayConnectedUntilInterrupted()
 				if err != nil {
 					_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 					_, _ = red.Println("[x] Error creating Discord session for "+settings.Tokens.Main+",", err)
@@ -606,7 +609,7 @@ func main() {
 				return
 			}
 
-			guilds, _ := client.GetCurrentUserGuilds(ctx, &disgord.GetCurrentUserGuildsParams{
+			guilds, _ := client.CurrentUser().GetGuilds(&disgord.GetCurrentUserGuildsParams{
 				Before: 0,
 				After:  0,
 				Limit:  100,
@@ -615,10 +618,12 @@ func main() {
 				if settings.Status.Main != "" {
 					_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
 				}*/
-			client.On(disgord.EvtMessageCreate, messageCreate)
-
+			client.Gateway().
+				MessageCreate(func(s disgord.Session, evt *disgord.MessageCreate) {
+					messageCreate(s, evt)
+				})
 			nbServers += len(guilds)
-			user, _ = client.GetCurrentUser(ctx)
+			user, err = client.CurrentUser().Get()
 
 		} else {
 
@@ -628,7 +633,7 @@ func main() {
 
 			ctx := context.Background()
 			defer func(client *disgord.Client, ctx context.Context) {
-				err := client.StayConnectedUntilInterrupted(ctx)
+				err := client.Gateway().StayConnectedUntilInterrupted()
 				if err != nil {
 					_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 					_, _ = red.Println("[x] Error creating Discord session for "+settings.Tokens.Main+",", err)
@@ -651,7 +656,7 @@ func main() {
 					_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
 				}*/
 
-			user, _ = client.GetCurrentUser(ctx)
+			user, _ = client.CurrentUser().Get()
 		}
 	}()
 
@@ -819,12 +824,15 @@ func checkGiftLink(s disgord.Session, m *disgord.MessageCreate, link string, sta
 	bodyString := string(body)
 	fasthttp.ReleaseResponse(res)
 
-	user, _ := s.GetCurrentUser(m.Ctx)
+	user, err := s.CurrentUser().Get()
+	if err != nil {
+		return
+	}
 	//guilds, _ := s.GetCurrentUserGuilds(m.Ctx, &disgord.GetCurrentUserGuildsParams{Limit: 100})
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 	_, _ = green.Print("[-] " + user.Username + " sniped code: ")
 	_, _ = red.Print(code[2])
-	guild, _ := s.GetGuild(m.Ctx, m.Message.GuildID)
+	guild, _ := s.Guild(m.Message.GuildID).Get()
 
 	if guild == nil {
 		print(" from " + m.Message.Author.Username + "#" + m.Message.Author.Discriminator.String())
@@ -833,7 +841,7 @@ func checkGiftLink(s disgord.Session, m *disgord.MessageCreate, link string, sta
 		return
 	}
 
-	channel, err := s.GetChannel(m.Ctx, m.Message.ChannelID)
+	channel, err := s.Channel(m.Message.ChannelID).Get()
 	if err != nil || guild == nil {
 		//channel, err = s.Channel(m.ChannelID)
 		if err != nil {
@@ -859,9 +867,9 @@ func findHost(s disgord.Session, m *disgord.MessageCreate) disgord.Snowflake {
 		giveawayID = m.Message.ID
 	}
 
-	messages, _ := s.GetMessages(m.Ctx, m.Message.ChannelID, &disgord.GetMessagesParams{Before: giveawayID, Limit: 100})
-	messages2, _ := s.GetMessages(m.Ctx, m.Message.ChannelID, &disgord.GetMessagesParams{Before: messages[len(messages)-1].ID, Limit: 100})
-	messages3, _ := s.GetMessages(m.Ctx, m.Message.ChannelID, &disgord.GetMessagesParams{Before: messages2[len(messages2)-1].ID, Limit: 100})
+	messages, _ := s.Channel(m.Message.ChannelID).GetMessages(&disgord.GetMessagesParams{Before: giveawayID, Limit: 100})
+	messages2, _ := s.Channel(m.Message.ChannelID).GetMessages(&disgord.GetMessagesParams{Before: messages[len(messages)-1].ID, Limit: 100})
+	messages3, _ := s.Channel(m.Message.ChannelID).GetMessages(&disgord.GetMessagesParams{Before: messages2[len(messages2)-1].ID, Limit: 100})
 
 	messages = append(messages, messages2...)
 	messages = append(messages, messages3...)
@@ -873,7 +881,10 @@ func findHost(s disgord.Session, m *disgord.MessageCreate) disgord.Snowflake {
 		if reGiveawayHost.Match(content) {
 			host := reGiveawayHost.FindStringSubmatch(string(content))[1]
 			hostId, _ := strconv.Atoi(host)
-			hostUser, _ := s.GetUser(m.Ctx, disgord.Snowflake(hostId))
+			hostUser, err := s.User(disgord.Snowflake(hostId)).Get()
+			if err != nil {
+				return 0
+			}
 			return hostUser.ID
 		}
 	}
@@ -881,7 +892,8 @@ func findHost(s disgord.Session, m *disgord.MessageCreate) disgord.Snowflake {
 }
 
 func messageCreate(s disgord.Session, m *disgord.MessageCreate) {
-	user, _ := s.GetCurrentUser(m.Ctx)
+	println(m.Message.Content)
+	user, _ := s.CurrentUser().Get()
 	if reGiftLink.Match([]byte(m.Message.Content)) && SniperRunning {
 		checkGiftLink(s, m, m.Message.Content, time.Now())
 	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, strconv.FormatUint(uint64(m.Message.GuildID), 10)) && (strings.Contains(strings.ToLower(m.Message.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Message.Content), "react with") && strings.Contains(strings.ToLower(m.Message.Content), "giveaway"))) && m.Message.Author.Bot {
@@ -911,14 +923,14 @@ func messageCreate(s disgord.Session, m *disgord.MessageCreate) {
 		}
 
 		time.Sleep(time.Duration(settings.Giveaway.Delay) * time.Second)
-		guild, err := s.GetGuild(m.Ctx, m.Message.GuildID)
+		guild, err := s.Guild(m.Message.GuildID).Get()
 		if err != nil {
 			println()
 			return
 
 		}
 
-		channel, err := s.GetChannel(m.Ctx, m.Message.ChannelID)
+		channel, err := s.Channel(m.Message.ChannelID).Get()
 		if err != nil {
 			println()
 			return
@@ -927,19 +939,21 @@ func messageCreate(s disgord.Session, m *disgord.MessageCreate) {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = yellow.Print("[-] " + user.Username + " entered a Giveaway")
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-		_ = s.CreateReaction(m.Ctx, m.Message.ChannelID, m.Message.ID, "🎉")
+		//message := s.Guild(.)
+		//_ = m.Message.React(s
+		//"🎉")
 
 	} else if (strings.Contains(strings.ToLower(m.Message.Content), "giveaway") || strings.Contains(strings.ToLower(m.Message.Content), "win") || strings.Contains(strings.ToLower(m.Message.Content), "won")) && strings.Contains(m.Message.Content, strconv.FormatUint(uint64(user.ID), 10)) && m.Message.Author.Bot {
 		won := reGiveaway.FindStringSubmatch(m.Message.Content)
 		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Message.Content)
-		guild, err := s.GetGuild(m.Ctx, m.Message.GuildID)
+		guild, err := s.Guild(m.Message.GuildID).Get()
 		if err != nil {
 			println()
 			return
 
 		}
 
-		channel, err := s.GetChannel(m.Ctx, m.Message.ChannelID)
+		channel, err := s.Channel(m.Message.ChannelID).Get()
 		if err != nil || guild == nil {
 			println()
 			return
@@ -977,19 +991,19 @@ func messageCreate(s disgord.Session, m *disgord.MessageCreate) {
 				_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 				return
 			}
-			dm, err := s.CreateDM(m.Ctx, giveawayHost)
+			//dm, err := s.CurrentUser().Get()
 
 			if err != nil {
 				return
 			}
 			time.Sleep(time.Second * time.Duration(settings.Giveaway.DMDelay))
 
-			_, err = dm.SendMsgString(m.Ctx, s, settings.Giveaway.DM)
+			//_, err = dm.SendMsg(m.Ctx, s, settings.Giveaway.DM)
 			if err != nil {
 				return
 			}
 
-			host, _ := s.GetUser(m.Ctx, giveawayHost)
+			host, _ := s.User(giveawayHost).Get()
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 			_, _ = green.Print("[+] " + user.Username + " sent DM to host: ")
 			_, _ = fmt.Println(host.Username + "#" + host.Discriminator.String())
