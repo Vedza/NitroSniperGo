@@ -1,8 +1,5 @@
 #!/bin/bash
 git checkout master
-if ! .git/hooks/pre-commit; then
-  exit 1
-fi
 rm -rf NitroSniperGo_build_*
 mkdir NitroSniperGo_build_win64 NitroSniperGo_build_linux NitroSniperGo_build_mac
 env GOOS=windows GOARCH=amd64 go build && cp settings.json settings.json NitroSniperGo.exe NitroSniperGo_build_win64
