@@ -820,7 +820,6 @@ func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
 	if contains(settings.BlacklistServers, m.GuildID) {
 		return
 	}
