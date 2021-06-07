@@ -1,18 +1,21 @@
 package main
 
 import (
-	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/andersfylling/disgord"
+	"github.com/bwmarrin/discordgo"
 	"github.com/dgraph-io/ristretto"
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/speaker"
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -21,6 +24,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode"
 )
 
 type Settings struct {
@@ -146,8 +150,7 @@ func contains(array []string, value string) bool {
 	return false
 }
 
-/*
-func joinServer(code string, s *disgord.Session, m *disgord.Message) {
+func joinServer(code string, s *discordgo.Session, m *discordgo.MessageCreate) {
 	if !InviteRunning {
 		return
 	}
@@ -178,9 +181,9 @@ func joinServer(code string, s *disgord.Session, m *disgord.Message) {
 	var serverName = reInviteServer.FindStringSubmatch(string(body))[1]
 
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-	_, _ = green.Print("[+] " + user.Username + " joined a new server: ")
+	_, _ = green.Print("[+] " + s.State.User.Username + " joined a new server: ")
 	_, _ = yellow.Print(serverName)
-	print(" from " + m.Message.Author.String())
+	print(" from " + m.Author.String())
 	guild, err := s.State.Guild(m.GuildID)
 	if err != nil || guild == nil {
 		guild, err = s.Guild(m.GuildID)
@@ -218,23 +221,19 @@ func joinServer(code string, s *disgord.Session, m *disgord.Message) {
 	}
 }
 
-func join(code string, s *discordgo.Session, m *discordgo.Message) func() {
+func join(code string, s *discordgo.Session, m *discordgo.MessageCreate) func() {
 	return func() {
-		//joinServer(code, s, m)
+		joinServer(code, s, m)
 	}
-}*/
+}
 
-func webhookNitro(code string, user *disgord.User, guild string, channel string, status int, response string) {
+func webhookNitro(code string, user *discordgo.User, guild string, channel string, status int, response string) {
 	if settings.Webhook.URL == "" || (status <= 0 && settings.Webhook.GoodOnly) {
 		return
 	}
 	var image = "https://i.redd.it/mvoen8wq3w831.png"
 	var color = "65290"
 
-	url, err := user.AvatarURL(100, false)
-	if err != nil {
-		return
-	}
 	if status == 0 {
 		color = "16769024"
 		image = ""
@@ -282,7 +281,7 @@ func webhookNitro(code string, user *disgord.User, guild string, channel string,
 		}
 	  ],
 	"username": "` + user.Username + `",
-  	"avatar_url": "` + url + `"
+  	"avatar_url": "` + user.AvatarURL("") + `"
 	}
 	`
 
@@ -301,7 +300,7 @@ func webhookNitro(code string, user *disgord.User, guild string, channel string,
 	fasthttp.ReleaseResponse(res)
 }
 
-func webhookGiveaway(prize string, user *disgord.User, guild string, channel string) {
+func webhookGiveaway(prize string, user *discordgo.User, guild string, channel string) {
 	if settings.Webhook.URL == "" {
 		return
 	}
@@ -315,8 +314,6 @@ func webhookGiveaway(prize string, user *disgord.User, guild string, channel str
 			  "inline": false
 			},`
 	}
-
-	url, _ := user.AvatarURL(100, false)
 
 	body := `
 	{
@@ -349,7 +346,7 @@ func webhookGiveaway(prize string, user *disgord.User, guild string, channel str
 		}
 	  ],
 	"username": "` + user.Username + `",
-  	"avatar_url": "` + url + `"
+  	"avatar_url": "` + user.AvatarURL("") + `"
 	}
 	`
 
@@ -368,7 +365,7 @@ func webhookGiveaway(prize string, user *disgord.User, guild string, channel str
 	fasthttp.ReleaseResponse(res)
 }
 
-func webhookPrivnote(content string, user *disgord.User, guild string, channel string, data string) {
+func webhookPrivnote(content string, user *discordgo.User, guild string, channel string, data string) {
 	if settings.Webhook.URL == "" {
 		return
 	}
@@ -376,8 +373,6 @@ func webhookPrivnote(content string, user *disgord.User, guild string, channel s
 
 	content = "`" + content + "`"
 	data = "`" + data + "`"
-	url, _ := user.AvatarURL(100, false)
-
 	body := `
 	{
 	  "content": null,
@@ -416,7 +411,7 @@ func webhookPrivnote(content string, user *disgord.User, guild string, channel s
 		}
 	  ],
 	"username": "` + user.Username + `",
-  	"avatar_url": "` + url + `"
+  	"avatar_url": "` + user.AvatarURL("") + `"
 	}
 	`
 
@@ -490,49 +485,31 @@ func inviteTimerEnd() {
 	_, _ = green.Println("[+] Starting Nitro sniping")
 }
 
-func run(token string, finished *chan bool, index int) {
+func run(token string, finished chan bool, index int) {
 	currentToken = token
-
-	client := disgord.New(disgord.Config{
-		BotToken: token,
-	})
-
-	var err error
-	ctx := context.Background()
-	defer func(client *disgord.Client, ctx context.Context) {
-		err := client.StayConnectedUntilInterrupted(ctx)
-		if err != nil {
-			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = red.Println("[x] Error creating Discord session for "+token+",", err)
-			time.Sleep(4 * time.Second)
-			os.Exit(-1) //	authedAlts <- "?" + token
-			return
-		}
-	}(client, ctx)
-
+	dg, err := discordgo.New(token)
 	if err != nil {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = red.Println("[x] Error opening Discord session for "+token+",", err)
+		_, _ = red.Println("[x] Error creating Discord session for "+token+",", err)
 		time.Sleep(4 * time.Second)
-		os.Exit(-1) //	authedAlts <- "?" + token
-		return
+		os.Exit(-1)
+	} else {
+		err = dg.Open()
+		if err != nil {
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = red.Println("[x] Error opening connection for "+token+",", err)
+			time.Sleep(4 * time.Second)
+			os.Exit(-1)
+		} else {
+			nbServers += len(dg.State.Guilds)
+			dg.AddHandler(messageCreate)
+			if settings.Status.Alts != "" {
+				_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Alts))
+			}
+		}
 	}
-
-	guilds, _ := client.GetCurrentUserGuilds(ctx, &disgord.GetCurrentUserGuildsParams{
-		Before: 0,
-		After:  0,
-		Limit:  100,
-	})
-	/*
-		if settings.Status.Main != "" {
-			_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
-		}*/
-	client.On(disgord.EvtMessageCreate, messageCreate)
-
-	nbServers += len(guilds)
-	//user, _ := client.GetCurrentUser(ctx)
 	if index == len(settings.Tokens.Alts)-1 {
-		*finished <- true
+		finished <- true
 	}
 }
 
@@ -547,6 +524,7 @@ func deleteEmpty(s []string) []string {
 }
 
 func main() {
+
 	if settings.Tokens.Main == "" {
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = red.Println("[x] You must put your token in settings.json")
@@ -560,97 +538,44 @@ func main() {
 
 	if len(settings.Tokens.Alts) != 0 {
 		for i, token := range settings.Tokens.Alts {
-			go run(token, &finished, i)
+			go run(token, finished, i)
 		}
 	}
 
+	var dg *discordgo.Session
 	var err error
-	var user *disgord.User
 
-	go func() {
-		if settings.Nitro.MainSniper {
-			client := disgord.New(disgord.Config{
-				BotToken: settings.Tokens.Main,
-			})
+	if settings.Nitro.MainSniper {
+		dg, err = discordgo.New(settings.Tokens.Main)
 
-			ctx := context.Background()
-			defer func(client *disgord.Client, ctx context.Context) {
-				err := client.StayConnectedUntilInterrupted(ctx)
-				if err != nil {
-					_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-					_, _ = red.Println("[x] Error creating Discord session for "+settings.Tokens.Main+",", err)
-					time.Sleep(4 * time.Second)
-					os.Exit(-1) //	authedAlts <- "?" + token
-					return
-				}
-			}(client, ctx)
-
-			if err != nil {
-				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-				_, _ = red.Println("[x] Error opening Discord session for "+settings.Tokens.Main+",", err)
-				time.Sleep(4 * time.Second)
-				os.Exit(-1) //	authedAlts <- "?" + token
-				return
-			}
-
-			guilds, _ := client.GetCurrentUserGuilds(ctx, &disgord.GetCurrentUserGuildsParams{
-				Before: 0,
-				After:  0,
-				Limit:  100,
-			})
-			/*
-				if settings.Status.Main != "" {
-					_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
-				}*/
-			client.On(disgord.EvtMessageCreate, messageCreate)
-
-			nbServers += len(guilds)
-			user, _ = client.GetCurrentUser(ctx)
-
-		} else {
-
-			client := disgord.New(disgord.Config{
-				BotToken: settings.Tokens.Main,
-			})
-
-			ctx := context.Background()
-			defer func(client *disgord.Client, ctx context.Context) {
-				err := client.StayConnectedUntilInterrupted(ctx)
-				if err != nil {
-					_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-					_, _ = red.Println("[x] Error creating Discord session for "+settings.Tokens.Main+",", err)
-					time.Sleep(4 * time.Second)
-					os.Exit(-1)
-					return
-				}
-			}(client, ctx)
-
-			if err != nil {
-				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-				_, _ = red.Println("[x] Error opening Discord session for "+settings.Tokens.Main+",", err)
-				time.Sleep(4 * time.Second)
-				os.Exit(-1)
-				return
-			}
-
-			/*
-				if settings.Status.Main != "" {
-					_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
-				}*/
-
-			user, _ = client.GetCurrentUser(ctx)
+		if err != nil {
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = red.Println("[x] Error creating Discord session for "+settings.Tokens.Main+",", err)
+			time.Sleep(4 * time.Second)
+			os.Exit(-1)
 		}
-	}()
 
-	if len(settings.Tokens.Alts) > 0 {
+		err = dg.Open()
+		if err != nil {
+			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
+			_, _ = red.Println("[x] Error opening connection for "+settings.Tokens.Main+",", err)
+			time.Sleep(4 * time.Second)
+			os.Exit(-1)
+		}
+
+		dg.AddHandler(messageCreate)
+
+		if settings.Status.Main != "" {
+			_, _ = dg.UserUpdateStatus(discordgo.Status(settings.Status.Main))
+		}
+
+		nbServers += len(dg.State.Guilds)
+	}
+
+	if len(settings.Tokens.Alts) != 0 {
 		<-finished
 	}
 
-	for {
-		if user != nil {
-			break
-		}
-	}
 	c := exec.Command("clear")
 
 	c.Stdout = os.Stdout
@@ -680,12 +605,11 @@ func main() {
 		_, _ = cyan.Print(" and Privnote")
 	}
 	if settings.Nitro.MainSniper {
-		_, _ = cyan.Print(" for " + user.Username + " on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.Tokens.Alts)+1) + " accounts 🔫\n\n")
+		_, _ = cyan.Print(" for " + dg.State.User.Username + " on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.Tokens.Alts)+1) + " accounts 🔫\n\n")
 	} else {
 		_, _ = cyan.Print(" on " + strconv.Itoa(nbServers) + " servers and " + strconv.Itoa(len(settings.Tokens.Alts)) + " accounts 🔫\n\n")
 	}
 	_, _ = magenta.Print(t.Format("15:04:05 "))
-
 	fmt.Println("[+] Sniper is ready")
 
 	sc := make(chan os.Signal, 1)
@@ -693,11 +617,12 @@ func main() {
 	<-sc
 
 	if settings.Nitro.MainSniper {
-		//	_ = dg.Close()
+		_ = dg.Close()
 	}
 }
 
-func checkCode(bodyString string, code string, user *disgord.User, guild string, channel string, diff time.Duration) {
+func checkCode(bodyString string, code string, user *discordgo.User, guild string, channel string, diff time.Duration) {
+
 	var response Response
 	err := json.Unmarshal([]byte(bodyString), &response)
 
@@ -714,7 +639,26 @@ func checkCode(bodyString string, code string, user *disgord.User, guild string,
 		}
 		webhookNitro(code, user, guild, channel, 0, response.Message)
 	} else if strings.Contains(bodyString, "nitro") {
+		f, err := os.Open("sound.mp3")
+		if err != nil {
+			log.Fatal(err)
+		}
 
+		var format beep.Format
+		sound, format, err := mp3.Decode(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer sound.Close()
+
+		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+
+		done := make(chan bool)
+		speaker.Play(beep.Seq(sound, beep.Callback(func() {
+			done <- true
+		})))
+
+		<-done
 		nitroType := ""
 		if reNitroType.Match([]byte(bodyString)) {
 			nitroType = reNitroType.FindStringSubmatch(bodyString)[1]
@@ -755,7 +699,7 @@ func checkCode(bodyString string, code string, user *disgord.User, guild string,
 
 }
 
-func checkGiftLink(s disgord.Session, m *disgord.MessageCreate, link string, start time.Time) {
+func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string, start time.Time) {
 
 	code := reGiftLink.FindStringSubmatch(link)
 
@@ -767,7 +711,7 @@ func checkGiftLink(s disgord.Session, m *disgord.MessageCreate, link string, sta
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = red.Print("[=] Auto-detected a fake code: ")
 		_, _ = red.Print(code[2])
-		fmt.Println(" from " + m.Message.Author.Username + "#" + m.Message.Author.Discriminator.String())
+		fmt.Println(" from " + m.Author.String())
 		return
 	}
 
@@ -776,7 +720,7 @@ func checkGiftLink(s disgord.Session, m *disgord.MessageCreate, link string, sta
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 		_, _ = red.Print("[=] Auto-detected a duplicate code: ")
 		_, _ = red.Print(code[2])
-		fmt.Println(" from " + m.Message.Author.Username + "#" + m.Message.Author.Discriminator.String())
+		fmt.Println(" from " + m.Author.String())
 		return
 	}
 
@@ -785,9 +729,9 @@ func checkGiftLink(s disgord.Session, m *disgord.MessageCreate, link string, sta
 	req.Header.SetContentType("application/json")
 	req.Header.Set("authorization", settings.Tokens.Main)
 	var channelId = "null"
-	/*if s.Token == settings.Tokens.Main {
-		channelId = string(m.Message.ChannelID)
-	}*/
+	if s.Token == settings.Tokens.Main {
+		channelId = m.ChannelID
+	}
 	req.SetBody([]byte(`{"channel_id":` + channelId + `,"payment_source_id": ` + paymentSourceID + `}`))
 	req.Header.SetMethodBytes([]byte("POST"))
 	req.SetRequestURIBytes(strRequestURI)
@@ -806,50 +750,47 @@ func checkGiftLink(s disgord.Session, m *disgord.MessageCreate, link string, sta
 	bodyString := string(body)
 	fasthttp.ReleaseResponse(res)
 
-	user, _ := s.GetCurrentUser(m.Ctx)
-	//guilds, _ := s.GetCurrentUserGuilds(m.Ctx, &disgord.GetCurrentUserGuildsParams{Limit: 100})
 	_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-	_, _ = green.Print("[-] " + user.Username + " sniped code: ")
+	_, _ = green.Print("[-] " + s.State.User.Username + " sniped code: ")
 	_, _ = red.Print(code[2])
-	guild, _ := s.GetGuild(m.Ctx, m.Message.GuildID)
-
-	if guild == nil {
-		print(" from " + m.Message.Author.Username + "#" + m.Message.Author.Discriminator.String())
-		_, _ = magenta.Println(" [DM]")
-		checkCode(bodyString, code[2], user, "DM", m.Message.Author.Username, diff)
-		return
-	}
-
-	channel, err := s.GetChannel(m.Ctx, m.Message.ChannelID)
+	guild, err := s.State.Guild(m.GuildID)
 	if err != nil || guild == nil {
-		//channel, err = s.Channel(m.ChannelID)
+		guild, err = s.Guild(m.GuildID)
 		if err != nil {
 			println()
-			checkCode(bodyString, code[2], user, guild.Name, m.Message.Author.Username+"#"+m.Message.Author.Discriminator.String(), diff)
+			checkCode(bodyString, code[2], s.State.User, "DM", m.Author.Username+"#"+m.Author.Discriminator, diff)
 			return
 		}
 	}
 
-	print(" from " + m.Message.Author.Username + "#" + m.Message.Author.Discriminator.String())
+	channel, err := s.State.Channel(m.ChannelID)
+	if err != nil || guild == nil {
+		channel, err = s.Channel(m.ChannelID)
+		if err != nil {
+			println()
+			checkCode(bodyString, code[2], s.State.User, guild.Name, m.Author.Username+"#"+m.Author.Discriminator, diff)
+			return
+		}
+	}
+
+	print(" from " + m.Author.String())
 	_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-	checkCode(bodyString, code[2], user, guild.Name, channel.Name, diff)
+	checkCode(bodyString, code[2], s.State.User, guild.Name, channel.Name, diff)
 }
 
-func findHost(s disgord.Session, m *disgord.MessageCreate) disgord.Snowflake {
-	giveaway := reGiveawayMessage.FindStringSubmatch(m.Message.Content)
+func findHost(s *discordgo.Session, m *discordgo.MessageCreate) string {
+	giveaway := reGiveawayMessage.FindStringSubmatch(m.Content)
 
-	var giveawayID disgord.Snowflake
+	var giveawayID string
 	if len(giveaway) > 1 {
-		id, _ := strconv.Atoi(giveaway[3])
-		giveawayID = disgord.Snowflake(id)
+		giveawayID = giveaway[3]
 	} else {
 		giveawayID = m.Message.ID
 	}
 
-	messages, _ := s.GetMessages(m.Ctx, m.Message.ChannelID, &disgord.GetMessagesParams{Before: giveawayID, Limit: 100})
-	messages2, _ := s.GetMessages(m.Ctx, m.Message.ChannelID, &disgord.GetMessagesParams{Before: messages[len(messages)-1].ID, Limit: 100})
-	messages3, _ := s.GetMessages(m.Ctx, m.Message.ChannelID, &disgord.GetMessagesParams{Before: messages2[len(messages2)-1].ID, Limit: 100})
-
+	messages, _ := s.ChannelMessages(m.ChannelID, 100, "", "", giveawayID)
+	messages2, _ := s.ChannelMessages(m.ChannelID, 100, "", "", messages[len(messages)-1].ID)
+	messages3, _ := s.ChannelMessages(m.ChannelID, 100, "", "", messages2[len(messages2)-1].ID)
 	messages = append(messages, messages2...)
 	messages = append(messages, messages3...)
 
@@ -859,19 +800,20 @@ func findHost(s disgord.Session, m *disgord.MessageCreate) disgord.Snowflake {
 		content, _ := json.Marshal(messages[i])
 		if reGiveawayHost.Match(content) {
 			host := reGiveawayHost.FindStringSubmatch(string(content))[1]
-			hostId, _ := strconv.Atoi(host)
-			hostUser, _ := s.GetUser(m.Ctx, disgord.Snowflake(hostId))
-			return hostUser.ID
+			return host
 		}
 	}
-	return 0
+	return ""
 }
 
-func messageCreate(s disgord.Session, m *disgord.MessageCreate) {
-	user, _ := s.GetCurrentUser(m.Ctx)
-	if reGiftLink.Match([]byte(m.Message.Content)) && SniperRunning {
-		checkGiftLink(s, m, m.Message.Content, time.Now())
-	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, strconv.FormatUint(uint64(m.Message.GuildID), 10)) && (strings.Contains(strings.ToLower(m.Message.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Message.Content), "react with") && strings.Contains(strings.ToLower(m.Message.Content), "giveaway"))) && m.Message.Author.Bot {
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	if contains(settings.BlacklistServers, m.GuildID) {
+		return
+	}
+
+	if reGiftLink.Match([]byte(m.Content)) && SniperRunning {
+		checkGiftLink(s, m, m.Content, time.Now())
+	} else if settings.Giveaway.Enable && !contains(settings.Giveaway.BlacklistServers, m.GuildID) && (strings.Contains(strings.ToLower(m.Content), "**giveaway**") || (strings.Contains(strings.ToLower(m.Content), "react with") && strings.Contains(strings.ToLower(m.Content), "giveaway"))) && m.Author.Bot {
 		content, _ := json.Marshal(m)
 		reUsername := regexp.MustCompile(`username":"[a-zA-Z0-9]+"`)
 		reBot := regexp.MustCompile(`"bot":(true|false)`)
@@ -898,98 +840,106 @@ func messageCreate(s disgord.Session, m *disgord.MessageCreate) {
 		}
 
 		time.Sleep(time.Duration(settings.Giveaway.Delay) * time.Second)
-		guild, err := s.GetGuild(m.Ctx, m.Message.GuildID)
-		if err != nil {
-			println()
-			return
-
+		guild, err := s.State.Guild(m.GuildID)
+		if err != nil || guild == nil {
+			guild, err = s.Guild(m.GuildID)
+			if err != nil {
+				println()
+				return
+			}
 		}
 
-		channel, err := s.GetChannel(m.Ctx, m.Message.ChannelID)
-		if err != nil {
-			println()
-			return
-
+		channel, err := s.State.Channel(m.ChannelID)
+		if err != nil || guild == nil {
+			channel, err = s.Channel(m.ChannelID)
+			if err != nil {
+				println()
+				return
+			}
 		}
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = yellow.Print("[-] " + user.Username + " entered a Giveaway")
+		_, _ = yellow.Print("[-] " + s.State.User.Username + " entered a Giveaway")
 		_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
-		_ = s.CreateReaction(m.Ctx, m.Message.ChannelID, m.Message.ID, "🎉")
+		_ = s.MessageReactionAdd(m.ChannelID, m.ID, "🎉")
 
-	} else if (strings.Contains(strings.ToLower(m.Message.Content), "giveaway") || strings.Contains(strings.ToLower(m.Message.Content), "win") || strings.Contains(strings.ToLower(m.Message.Content), "won")) && strings.Contains(m.Message.Content, strconv.FormatUint(uint64(user.ID), 10)) && m.Message.Author.Bot {
-		won := reGiveaway.FindStringSubmatch(m.Message.Content)
-		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Message.Content)
-		guild, err := s.GetGuild(m.Ctx, m.Message.GuildID)
-		if err != nil {
-			println()
-			return
-
+	} else if (strings.Contains(strings.ToLower(m.Content), "giveaway") || strings.Contains(strings.ToLower(m.Content), "win") || strings.Contains(strings.ToLower(m.Content), "won")) && strings.Contains(m.Content, s.State.User.ID) && m.Author.Bot {
+		won := reGiveaway.FindStringSubmatch(m.Content)
+		giveawayID := reGiveawayMessage.FindStringSubmatch(m.Content)
+		guild, err := s.State.Guild(m.GuildID)
+		if err != nil || guild == nil {
+			guild, err = s.Guild(m.GuildID)
+			if err != nil {
+				println()
+				return
+			}
 		}
 
-		channel, err := s.GetChannel(m.Ctx, m.Message.ChannelID)
+		channel, err := s.State.Channel(m.ChannelID)
 		if err != nil || guild == nil {
-			println()
-			return
+			channel, err = s.Channel(m.ChannelID)
+			if err != nil {
+				println()
+				return
+			}
 		}
 
 		if giveawayID == nil {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = green.Print("[+] " + user.Username + " Won Giveaway")
+			_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 			if len(won) > 1 {
 				_, _ = green.Print(": ")
 				_, _ = cyan.Println(won[1])
-				webhookGiveaway(won[1], user, guild.Name, channel.Name)
+				webhookGiveaway(won[1], s.State.User, guild.Name, channel.Name)
 			}
-			webhookGiveaway("", user, guild.Name, channel.Name)
+			webhookGiveaway("", s.State.User, guild.Name, channel.Name)
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		} else {
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = green.Print("[+] " + user.Username + " Won Giveaway")
+			_, _ = green.Print("[+] " + s.State.User.Username + " Won Giveaway")
 			if len(won) > 1 {
 				_, _ = green.Print(": ")
-				webhookGiveaway(won[1], user, guild.Name, channel.Name)
+				webhookGiveaway(won[1], s.State.User, guild.Name, channel.Name)
 				_, _ = cyan.Print(won[1])
 			} else {
-				webhookGiveaway("", user, guild.Name, channel.Name)
+				webhookGiveaway("", s.State.User, guild.Name, channel.Name)
 			}
 			_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 		}
 
 		if settings.Giveaway.DM != "" {
 			var giveawayHost = findHost(s, m)
-
-			if giveawayHost < 1 {
+			if giveawayHost == "" {
 				_, _ = magenta.Print(time.Now().Format("15:04:05 "))
 				_, _ = red.Print("[x] Couldn't determine giveaway host")
 				_, _ = magenta.Println(" [" + guild.Name + " > " + channel.Name + "]")
 				return
 			}
-			dm, err := s.CreateDM(m.Ctx, giveawayHost)
+			hostChannel, err := s.UserChannelCreate(giveawayHost)
 
 			if err != nil {
 				return
 			}
 			time.Sleep(time.Second * time.Duration(settings.Giveaway.DMDelay))
 
-			_, err = dm.SendMsgString(m.Ctx, s, settings.Giveaway.DM)
+			_, err = s.ChannelMessageSend(hostChannel.ID, settings.Giveaway.DM)
 			if err != nil {
 				return
 			}
 
-			host, _ := s.GetUser(m.Ctx, giveawayHost)
+			host, _ := s.User(giveawayHost)
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			_, _ = green.Print("[+] " + user.Username + " sent DM to host: ")
-			_, _ = fmt.Println(host.Username + "#" + host.Discriminator.String())
+			_, _ = green.Print("[+] " + s.State.User.Username + " sent DM to host: ")
+			_, _ = fmt.Println(host.Username + "#" + host.Discriminator)
 		}
-	} /*else if rePrivnote.Match([]byte(m.Message.Content)) && settings.Privnote.Enable {
-		var link = rePrivnote.FindStringSubmatch(m.Message.Content)
+	} else if rePrivnote.Match([]byte(m.Content)) && settings.Privnote.Enable {
+		var link = rePrivnote.FindStringSubmatch(m.Content)
 		var strRequestURI = link[1]
 		var password = link[2]
 
 		_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-		_, _ = green.Print("[-] " + user.Username + " sniped PrivNote: " + rePrivnote.FindStringSubmatch(m.Message.Content)[0])
+		_, _ = green.Print("[-] " + s.State.User.Username + " sniped PrivNote: " + rePrivnote.FindStringSubmatch(m.Content)[0])
 
-		print(" from " + m.Message.Author.String())
+		print(" from " + m.Author.String())
 
 		guild, err := s.State.Guild(m.GuildID)
 		if err != nil || guild == nil {
@@ -1074,18 +1024,18 @@ func messageCreate(s disgord.Session, m *disgord.MessageCreate) {
 				log.Fatal(err2)
 			}
 
-			user, _ := s.GetCurrentUser(m.Ctx)
 			_, _ = magenta.Print(time.Now().Format("15:04:05 "))
-			webhookPrivnote(clean, user, guild.Name, channel.Name, cryptData)
+			webhookPrivnote(clean, s.State.User, guild.Name, channel.Name, cryptData)
 			_, _ = yellow.Print("[-] Wrote the content of the privnote to privnotes.txt")
 		}
-	} else if reInviteLink.Match([]byte(m.Message.Content)) && settings.Invite.Enable {
-			if s.Token == settings.Tokens.Main || !InviteRunning {
-				return
-			}
-			code := reInviteLink.FindStringSubmatch(m.Message.Content)[1]
-			var f = join(code, s, m)
-			n := rand.Intn(settings.Invite.Delay.Max - settings.Invite.Delay.Min)
-			time.AfterFunc(time.Minute*(time.Duration(settings.Invite.Delay.Min)+time.Duration(n)), f)
-	}*/
+	} else if reInviteLink.Match([]byte(m.Content)) && settings.Invite.Enable {
+
+		if s.Token == settings.Tokens.Main || !InviteRunning {
+			return
+		}
+		code := reInviteLink.FindStringSubmatch(m.Content)[1]
+		var f = join(code, s, m)
+		n := rand.Intn(settings.Invite.Delay.Max - settings.Invite.Delay.Min)
+		time.AfterFunc(time.Minute*(time.Duration(settings.Invite.Delay.Min)+time.Duration(n)), f)
+	}
 }
