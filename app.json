@@ -1,0 +1,17 @@
+{
+  "name": "NitroSniperGo",
+  "description": "Discord Nitro sniper and Giveaway joiner in Go",
+  "repository": "https://github.com/Vedza/NitroSniperGo",
+  "logo": "https://avatars0.githubusercontent.com/u/28839427",
+  "keywords": [
+    "Discord",
+    "Nitro",
+    "Sniper"
+  ],
+  "env": {
+    "SETTINGS": {
+      "description": "Settings",
+      "value": "{\n  \"tokens\": {\n    \"main\": \"\",\n    \"alts\": [\n      \"\"\n    ]\n  },\n  \"status\": {\n    \"main\": \"\",\n    \"alts\": \"invisible\"\n  },\n  \"nitro\": {\n    \"max\": 2,\n    \"cooldown\": 24,\n    \"main_sniper\": true,\n    \"delay\": true\n  },\n  \"giveaway\": {\n    \"enable\": true,\n    \"delay\": 15,\n    \"dm\": \"Hey, I won a giveaway !\",\n    \"dm_delay\": 25,\n    \"blacklist_words\": [\n      \"bot\",\n      \"test\",\n      \"ban\"\n    ],\n    \"whitelist_words\": [\n      \"nitro\"\n    ],\n    \"blacklist_servers\": []\n  },\n  \"invite\": {\n    \"enable\": true,\n    \"delay\": {\n      \"min\": 10,\n      \"max\": 20\n    },\n    \"max\": 10,\n    \"cooldown\": 6\n  },\n  \"privnote\": {\n    \"enable\": false\n  },\n  \"webhook\": {\n    \"url\": \"\",\n    \"good_only\": false\n  },\n  \"blacklist_servers\": []\n}"
+    }
+  }
+}
