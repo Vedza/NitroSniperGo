@@ -1,7 +1,5 @@
 FROM golang:alpine3.14 AS builder
 
-RUN apk add build-base --no-cache
-
 WORKDIR app
 
 COPY . .
