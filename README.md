@@ -14,6 +14,8 @@ Discord Nitro sniper and Giveaway joiner in Go.
 
 ![Screenshot](screenshot.png)
 
+### ⚠️ I'm not working on it anymore. I will not add any features. Most of the suggestions and more are available in a paid version that is no longer being sold (Maybe it will be in the future). So be careful if someone claims he is selling the updated version, it's probably a scam or a malware.
+
 #### Features
 
 * Multiple accounts support to claim on one main account
