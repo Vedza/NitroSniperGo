@@ -152,7 +152,7 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 		}
 	}
 
-	logWithTime("<green>[-] " + s.State.User.Username + " sniped code: </><red>" + code[2] + "</> from  <magenta>[" + guild.Name + " > " + channel.Name + "]")
+	logWithTime("<green>[-] " + s.State.User.Username + " sniped code: </><red>" + code[2] + "</> from  <magenta>[" + guild.Name + " > " + channel.Name + "]</>")
 
 	checkCode(bodyString, code[2], s.State.User, guild.Name, channel.Name, diff)
 }
