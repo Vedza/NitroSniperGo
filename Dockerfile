@@ -4,8 +4,8 @@ WORKDIR app
 
 COPY . .
 
-RUN apk add --no-cache gcc libc-dev alsa-lib-dev \
-	&& go mod download \
+RUN apk add --no-cache gcc libc-dev alsa-lib-dev
+RUN go mod download \
 	&& go build
 
 FROM alpine:3.14 AS final
