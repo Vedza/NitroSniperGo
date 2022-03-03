@@ -7,7 +7,7 @@
 
 <a href="https://www.buymeacoffee.com/Vedza" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="32" width="140"></a>
 
-### New easy deploy with heroku [below](https://github.com/Vedza/NitroSniperGo/edit/master/README.md#usage) 
+### New easy deploy with heroku [below](https://github.com/Vedza/NitroSniperGo#usage) 
 <!-- [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Vedza/NitroSniperGo/tree/heroku)
 <a href="https://repl.it/github/Vedza/NitroSniperGo" target="_blank"><img src="https://repl.it/badge/github/Vedza/NitroSniperGo" alt="Deploy on Repl.it" height="32" width="160"></a>-->
 
