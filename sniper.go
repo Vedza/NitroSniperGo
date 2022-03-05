@@ -706,7 +706,7 @@ func getCookieString() (string) {
 	bodyString := string(body)
 	fasthttp.ReleaseResponse(res)
 
-	println(res.PeekCookie())
+	println(res.Header.PeekCookie())
 	if res.Cookie() == nil {
 		return ""
 	}
