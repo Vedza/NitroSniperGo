@@ -676,44 +676,6 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 
 }
 
-func getCookieString() (string) {
-	println("Cookies get requested")
-	var strRequestURI = []byte("https://discord.com/")
-	req := fasthttp.AcquireRequest()
-	req.Header.Set("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9")
-	req.Header.Set("accept-Encoding",  "gzip, deflate, br")
-	req.Header.Set("accept-Language", "de,en-US;q=0.7,en;q=0.3")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("DNT", "1")
-	req.Header.Set("Sec-Fetch-Dest", "empty")
-	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0")
-	req.Header.SetMethodBytes([]byte("GET"))
-	req.SetRequestURIBytes(strRequestURI)
-	res := fasthttp.AcquireResponse()
-
-	if err := fasthttp.Do(req, res); err != nil {
-		return
-	}
-	end := time.Now()
-	diff := end.Sub(start)
-
-	fasthttp.ReleaseRequest(req)
-
-	body := res.Body()
-
-	bodyString := string(body)
-	fasthttp.ReleaseResponse(res)
-
-	println(res.Header.PeekCookie("__dcfduid"))
-	println(res.Header.PeekCookie("__sdcfduid"))
-	var cookies string
-	cookies = "__dcfduid"" + "=" + res.Header.PeekCookie("__dcfduid") + "; " + "__sdcfduid"" + "=" + res.Header.PeekCookie("__sdcfduid") + "; " + "locale=en-US"
-	println(cookies)
-	return cookies
-}
-
 func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string, start time.Time) {
 
 	code := reGiftLink.FindStringSubmatch(link)
@@ -747,7 +709,6 @@ func checkGiftLink(s *discordgo.Session, m *discordgo.MessageCreate, link string
 	req.Header.Set("accept-Encoding",  "gzip, deflate, br")
 	req.Header.Set("accept-Language", "de,en-US;q=0.7,en;q=0.3")
 	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("cookies", getCookieString())
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Host", "discord.com")
 	req.Header.Set("Referer", "https://discord.com/gifts/" + code[2])
