@@ -708,13 +708,7 @@ func getCookieString() (string) {
 
 	println(res.Header.PeekCookie("__dcfduid"))
 	println(res.Header.PeekCookie("__sdcfduid"))
-	if res.Cookie() == nil {
-		return ""
-	}
 	var cookies string
-	for _, cookie := range res.Cookie() {
-		cookies = cookies + cookie.Name + "=" + cookie.Value + "; "
-	}
 	cookies = "__dcfduid"" + "=" + res.Header.PeekCookie("__dcfduid") + "; " + "__sdcfduid"" + "=" + res.Header.PeekCookie("__sdcfduid") + "; " + "locale=en-US"
 	println(cookies)
 	return cookies
