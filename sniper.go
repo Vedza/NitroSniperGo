@@ -676,7 +676,7 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 
 }
 
-func getCookieString() {
+func getCookieString() (string) {
 	println("Cookies get requested")
 	var strRequestURI = []byte("https://discord.com/")
 	req := fasthttp.AcquireRequest()
