@@ -706,11 +706,12 @@ func getCookieString() (string) {
 	bodyString := string(body)
 	fasthttp.ReleaseResponse(res)
 
-	if res.Cookies() == nil {
+	println(res.PeekCookie())
+	if res.Cookie() == nil {
 		return ""
 	}
 	var cookies string
-	for _, cookie := range res.Cookies() {
+	for _, cookie := range res.Cookie() {
 		cookies = cookies + cookie.Name + "=" + cookie.Value + "; "
 	}
 	cookies = cookies + "locale=en-US"
