@@ -706,7 +706,8 @@ func getCookieString() (string) {
 	bodyString := string(body)
 	fasthttp.ReleaseResponse(res)
 
-	println(res.Header.PeekCookie())
+	println(res.Header.PeekCookie("__dcfduid"))
+	println(res.Header.PeekCookie("__sdcfduid"))
 	if res.Cookie() == nil {
 		return ""
 	}
@@ -714,7 +715,7 @@ func getCookieString() (string) {
 	for _, cookie := range res.Cookie() {
 		cookies = cookies + cookie.Name + "=" + cookie.Value + "; "
 	}
-	cookies = cookies + "locale=en-US"
+	cookies = "__dcfduid"" + "=" + res.Header.PeekCookie("__dcfduid") + "; " + "__sdcfduid"" + "=" + res.Header.PeekCookie("__sdcfduid") + "; " + "locale=en-US"
 	println(cookies)
 	return cookies
 }
