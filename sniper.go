@@ -12,7 +12,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/valyala/fasthttp"
 	"log"
-	"math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -21,7 +20,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"unicode"
 )
 
 type Settings struct {
