@@ -1,16 +1,16 @@
 {
   "tokens": {
-    "main": "",
+    "main": "mfa.sA__7WBpu70lfvfa-U9SNmKX5XeMD8NP2Kc4-DediS-UsZOjkSFv9MZqt1tNlxTHU4egMwqloqnmJhfMgB_L",
     "alts": [
       ""
     ]
   },
   "status": {
-    "main": "",
+    "main": "idle",
     "alts": "invisible"
   },
   "nitro": {
-    "max": 2,
+    "max": 3,
     "cooldown": 24,
     "main_sniper": true,
     "delay": true
@@ -43,7 +43,7 @@
     "enable": false
   },
   "webhook": {
-    "url": "",
+    "url": "https://discord.com/api/webhooks/958407421779394581/bBHlF8MmKt25yPzLB0KvDBiLqN_Dk6xZccL3SCuRfMSIF8rvfRcK594JBmXyezoGuTC9",
     "good_only": false
   },
   "blacklist_servers": []
