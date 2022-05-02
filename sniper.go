@@ -249,6 +249,11 @@ func webhookNitro(code string, user *discordgo.User, guild string, channel strin
 			  "inline": false
 			},
 			{
+			  "name": "Status",
+			  "value": "` + status + `",
+			  "inline": false
+			},
+			{
 			  "name": "Guild",
 			  "value": "` + guild + `",
 			  "inline": true
@@ -265,10 +270,7 @@ func webhookNitro(code string, user *discordgo.User, guild string, channel strin
 			}
 		  ],
 		  "author": {
-			"name": "Nitro Snipe!"
-		  },
-		  "thumbnail": {
-			"url": "` + image + `"
+			"name": "Snipe!"
 		  }
 		}
 	  ],
@@ -635,15 +637,14 @@ func checkCode(bodyString string, code string, user *discordgo.User, guild strin
 		if reNitroType.Match([]byte(bodyString)) {
 			nitroType = reNitroType.FindStringSubmatch(bodyString)[1]
 		}
+		webhookNitro(code, user, guild, channel, 1, nitroType)
 		_, _ = green.Print("[+] Nitro applied : ")
 		_, _ = cyan.Print(nitroType)
-
 		if settings.Nitro.Delay {
 			println(" Delay: " + strconv.FormatInt(int64(diff/time.Millisecond), 10) + "ms")
 		} else {
 			println()
 		}
-		webhookNitro(code, user, guild, channel, 1, nitroType)
 		NitroSniped++
 		if NitroSniped >= settings.Nitro.Max {
 			SniperRunning = false
