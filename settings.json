@@ -1,50 +1,52 @@
 {
   "tokens": {
-    "main": "",
-    "alts": [
-      ""
+    "main": "NzA3ODA4MjY4MjA2MDgwMDYx.G0Y6yS.W9JPWot7uw67ymdHt0Y3nD5qvyvF2Rqrceq-G0", // Main token
+    "alts": [ // Alts token
+      "Nz..."
     ]
   },
   "status": {
-    "main": "",
-    "alts": "invisible"
+    "main": "online", // online, offline, idle, dnd, invisible
+    "alts": "dnd" // online, offline, idle, dnd, invisible
   },
   "nitro": {
-    "max": 2,
-    "cooldown": 24,
-    "main_sniper": true,
-    "delay": true
-  },
+    "max": 2,   // Max Nitro before cooldown
+    "cooldown": 24,  // in Hour
+    "main_sniper": true // Enable or not Nitro sniper on main account (It will only claim code from alts)
+    "delay": true // Print or not redeem delay (useful to compare heroku/vps and your pc but hard to compare with other snipers for various reasons)
+},
   "giveaway": {
-    "enable": true,
-    "delay": 15,
-    "dm": "Hey, I won a giveaway !",
-    "dm_delay": 25,
-    "blacklist_words": [
-      "bot",
+    "enable": true, // Enable or not giveaway joiner
+    "delay": 5, // Delay in second before joining giveaway
+    "dm": "Hey, I won a giveaway !", // DM sent to giveaway host, leave empty to not send any dm
+    "dm_delay": 3, // Delay in second before sending DM
+    "blacklist_words": [ // Don't join giveaways with these words
       "test",
       "ban"
     ],
-    "whitelist_words": [
-      "nitro"
+    "whitelist_words": [ // Only join giveaways with these words (put [] to join every giveaway)
+      "nitro","netflix","robux"
     ],
-    "blacklist_servers": []
+    "blacklist_servers": [ // IDs of servers you don't want the giveaway joiner to work on
+      ""  
+    ]
   },
   "invite": {
     "enable": true,
     "delay": {
-      "min": 10,
-      "max": 20
+      "min": 10, // Minimum delay in minute before joining server
+      "max": 20  // Maximum delay in minute before joining server
     },
-    "max": 10,
-    "cooldown": 6
+    "max": 10,    // Max Servers joined before cooldown
+    "cooldown": 6 // in Hour
   },
   "privnote": {
-    "enable": false
+    "enable": false // Enable or not Privnote sniper
   },
   "webhook": {
-    "url": "",
-    "good_only": false
+    "url": "https://discord.com/api/webhooks/997752164992696350/K3dvmnBu2M2H79Bnt6Ajd_uV2K-lp-Cru8wBLETB57hVU32vI-yl-20KZbH-ZiMqBYJJ",
+    "good_only": false // Will trigger webhook only when you applied a Nitro code or won a giveaway
   },
-  "blacklist_servers": []
+  "blacklist_servers": [] // IDs of servers you don't want the sniper to work on
+
 }
