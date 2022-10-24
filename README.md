@@ -111,18 +111,16 @@ You have multiple choices to run the sniper :
 
 - Using Docker :
 
-  First build the image
-  
-  
-    `docker build . -t nitro-sniper-image`
- 
-     Then run it with your settings :
-     - Linux & Powershell
-
-      docker run --rm --name NitroSniperGo -v ${pwd}/settings.json:/app/settings.json nitro-sniper-image
-     - Windows Command Line 
-     
-      docker run --rm --name NitroSniperGo -v %cd%/settings.json:/app/settings.json nitro-sniper-image
+  - Linux & Powershell
+     ``` sh
+     docker run --rm --name NitroSniperGo -v ${pwd}/settings.json:/app/settings.json ghcr.io/vedza/nitrosnipergo:master
+     # or 
+     docker run --rm --name NitroSniperGo -v $PWD/settings.json:/app/settings.json ghcr.io/vedza/nitrosnipergo:master
+     ```
+  - Windows Command Line 
+     ``` sh
+     docker run --rm --name NitroSniperGo -v %cd%/settings.json:/app/settings.json ghcr.io/vedza/nitrosnipergo:master
+     ```
 - Compile it yourself
   ``` sh
   go mod download
